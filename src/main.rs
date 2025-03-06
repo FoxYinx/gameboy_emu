@@ -1,8 +1,7 @@
-use crate::cpu::Cpu;
-
-mod cpu;
+mod components;
+use crate::components::cpu::Cpu;
 
 fn main() {
-    let gameboy_cpu = Cpu::new();
+    let _gameboy_cpu = Cpu::new();
     println!("Hello, world!");
 }

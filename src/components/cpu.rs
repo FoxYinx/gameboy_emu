@@ -1,6 +1,4 @@
-use crate::cpu::registers::Registers;
-
-mod registers;
+use crate::components::registers::Registers;
 
 pub struct Cpu {
     registers: Registers,
