@@ -10,7 +10,7 @@ fn main() {
     let bytes = read_cartridge(String::from("resources/roms/cpu_instrs/individual/01-special.gb"));
     for (line, byte) in bytes.iter().enumerate() {
         if *byte != 0 {
-            println!("{} at line {}", byte, line);
+            println!("{} at line {:#06X}", byte, line);
         }
     }
 }
