@@ -1,2 +1,3 @@
-pub mod cpu;
+mod cpu;
 mod registers;
+pub mod gameboy;
