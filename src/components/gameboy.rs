@@ -16,20 +16,22 @@ impl Gameboy {
             cartridge: Vec::new()
         }
     }
-    
+
     pub fn cartridge_to_rom(&mut self, filename: String) {
         self.cartridge = io::cartridge_reader::read_cartridge(filename)
     }
-    
+
     pub fn toggle_debug(&mut self) {
         self.cpu.toggle_debug()
     }
-    
+
     pub fn start(&mut self) {
         for _i in 0..1000 {
             if let Some(opcode) = self.cartridge.get(self.cpu.registers.pc as usize) {
-                self.cpu.process_opcode(*opcode);
-                self.cpu.registers.pc += 1;
+                let pc_modified = self.cpu.process_opcode(*opcode);
+                if !pc_modified {
+                    self.cpu.registers.pc += 1;
+                }
             } else {
                 panic!("Tried to access address outside of ROM")
             }
