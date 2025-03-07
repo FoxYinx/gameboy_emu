@@ -3,7 +3,9 @@ use crate::components::registers::Registers;
 pub struct Cpu {
     pub(crate) registers: Registers,
     cycles: u64,
-    debug: bool
+    debug: bool,
+    ime: bool,
+    ime_scheduled: bool
 }
 
 impl Cpu {
@@ -11,12 +13,21 @@ impl Cpu {
         Cpu {
             registers: Registers::default(),
             cycles: 0,
-            debug: false
+            debug: false,
+            ime: true,
+            ime_scheduled: false
         }
     }
     
     pub fn toggle_debug(&mut self) {
         self.debug = !self.debug
+    }
+
+    pub(crate) fn update_ime(&mut self) {
+        if self.ime_scheduled {
+            self.ime = !self.ime;
+            self.ime_scheduled = false;
+        }
     }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut [u8; 0x10000]) -> bool {
@@ -208,6 +219,15 @@ impl Cpu {
                     eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
                     false
                 }
+            }
+            0xF3 => {
+                if self.debug {
+                    println!("Opcode: {:#04X} DI, at PC {:#06X}", opcode, self.registers.pc);
+                }
+                
+                self.ime_scheduled = true;
+                self.cycles += 4;
+                false
             }
             _ => {
                 panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc)

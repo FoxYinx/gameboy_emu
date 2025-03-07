@@ -27,6 +27,7 @@ impl Gameboy {
         for _i in 0..20000 {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let pc_modified = self.cpu.process_opcode(*opcode, &mut self.memory);
+                self.cpu.update_ime();
                 if !pc_modified {
                     self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
                 }
