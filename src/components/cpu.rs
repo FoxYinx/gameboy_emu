@@ -29,15 +29,36 @@ impl Cpu {
                 self.cycles += 4;
                 false
             }
-            0xC3 => {
+            0x21 => {
                 if self.debug {
-                    println!("Opcode: {:#04X} JP imm16, at PC {:#06X}", opcode, self.registers.pc);
+                    println!("Opcode: {:#04X} LD HL imm16, at PC {:#06X}", opcode, self.registers.pc);
                 }
 
+                self.cycles += 12;
+                self.registers.pc += 1;
+                if let Some(low) = cartridge.get(self.registers.pc as usize) {
+                    self.registers.pc += 1;
+                    if let Some(high) = cartridge.get(self.registers.pc as usize) {
+                        let immediate = ((*high as u16) << 8) | *low as u16;
+                        self.registers.set_hl(immediate);
+                    } else {
+                        eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of jump immediate at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
+            0xC3 => {
                 self.cycles += 16;
                 if let Some(low) = cartridge.get((self.registers.pc + 1) as usize) {
                     if let Some(high) = cartridge.get((self.registers.pc + 2) as usize) {
                         let address = ((*high as u16) << 8) | *low as u16;
+
+                        if self.debug {
+                            println!("Opcode: {:#04X} JP {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc);
+                        }
+
                         self.registers.pc = address;
                         true
                     } else {
@@ -50,8 +71,7 @@ impl Cpu {
                 }
             }
             _ => {
-                eprintln!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc);
-                false
+                panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc)
             }
         }
     }
