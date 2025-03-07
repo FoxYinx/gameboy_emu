@@ -202,6 +202,20 @@ impl Cpu {
                 }
                 false
             }
+            0x3E => {
+                self.cycles += 8;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    self.registers.a = *imm8;
+                    
+                    if self.debug {
+                        println!("Opcode: {:#04X} LD A imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to read immediate value at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0x47 => {
                 if self.debug {
                     println!("Opcode: {:#04X} LD B A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
