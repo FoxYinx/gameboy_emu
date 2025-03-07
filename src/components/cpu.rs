@@ -93,7 +93,7 @@ impl Cpu {
                     }
                     
                     self.registers.a = *value;
-                    self.registers.set_hl(self.registers.get_hl() + 1);
+                    self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
                 } else {
                     eprintln!("Failed to get value at [HL] {:#06X}", self.registers.get_hl());
                 }
