@@ -85,6 +85,20 @@ impl Cpu {
                 }
                 false
             }
+            0x2A => {
+                self.cycles += 8;
+                if let Some(value) = cartridge.get(self.registers.get_hl() as usize) {
+                    if self.debug {
+                        println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X}, at PC {:#06X}", opcode, value, self.registers.pc);
+                    }
+                    
+                    self.registers.a = *value;
+                    self.registers.set_hl(self.registers.get_hl() + 1);
+                } else {
+                    eprintln!("Failed to get value at [HL] {:#06X}", self.registers.get_hl());
+                }
+                false
+            }
             0x47 => {
                 self.cycles += 4;
                 
