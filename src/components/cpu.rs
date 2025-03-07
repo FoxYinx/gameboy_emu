@@ -19,7 +19,7 @@ impl Cpu {
         self.debug = !self.debug
     }
     
-    pub(crate) fn process_opcode(&mut self, opcode: u8, cartridge: &Vec<u8>) -> bool {
+    pub(crate) fn process_opcode(&mut self, opcode: u8, cartridge: &mut Vec<u8>) -> bool {
         match opcode { 
             0x00 => {
                 if self.debug {
@@ -62,6 +62,15 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get low value of jump immediate at PC {:#06X}", self.registers.pc);
                 }
+                false
+            }
+            0x12 => {
+                if self.debug {
+                    println!("Opcode: {:#04X} LD [DE] A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+                
+                self.cycles += 8;
+                cartridge.insert(self.registers.get_de() as usize, self.registers.a);
                 false
             }
             0x21 => {
