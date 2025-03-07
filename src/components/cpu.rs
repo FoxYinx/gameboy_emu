@@ -49,6 +49,16 @@ impl Cpu {
                 }
                 false
             }
+            0x47 => {
+                self.cycles += 4;
+                
+                if self.debug {
+                    println!("Opcode: {:#04X} LD B = A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+                
+                self.registers.b = self.registers.a;
+                false
+            }
             0xC3 => {
                 self.cycles += 16;
                 if let Some(low) = cartridge.get((self.registers.pc + 1) as usize) {
