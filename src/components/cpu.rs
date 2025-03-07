@@ -37,11 +37,11 @@ impl Cpu {
                     println!("Opcode: {:#04X} NOP, at PC {:#06X}", opcode, self.registers.pc);
                 }
                 
-                self.cycles += 4;
+                self.cycles = self.cycles.wrapping_add(4);
                 false
             }
             0x0D => {
-                self.cycles += 4;
+                self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_sub(1);
 
@@ -55,7 +55,7 @@ impl Cpu {
                 false
             }
             0x0E => {
-                self.cycles += 8;
+                self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(imm8) = memory.get(self.registers.pc as usize) {
                     if self.debug {
@@ -69,7 +69,7 @@ impl Cpu {
                 false
             }
             0x11 => {
-                self.cycles += 12;
+                self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -94,12 +94,12 @@ impl Cpu {
                     println!("Opcode: {:#04X} LD [DE] A, with DE = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_de(), self.registers.a, self.registers.pc);
                 }
 
-                self.cycles += 8;
+                self.cycles = self.cycles.wrapping_add(8);
                 memory[self.registers.get_de() as usize] = self.registers.a;
                 false
             }
             0x14 => {
-                self.cycles += 4;
+                self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.d;
                 self.registers.d = self.registers.d.wrapping_add(1);
 
@@ -113,7 +113,7 @@ impl Cpu {
                 false
             }
             0x1C => {
-                self.cycles += 4;
+                self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.e;
                 self.registers.e = self.registers.e.wrapping_add(1);
 
@@ -127,13 +127,13 @@ impl Cpu {
                 false
             }
             0x20 => {
-                self.cycles += 8;
+                self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if !self.registers.get_z() {
                     if let Some(offset) = memory.get(self.registers.pc as usize) {
                         let original_pc = self.registers.pc;
                         self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
-                        self.cycles += 4;
+                        self.cycles = self.cycles.wrapping_add(4);
                         
                         if self.debug {
                             println!("Opcode: {:#04X} JP NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, original_pc);
@@ -147,18 +147,17 @@ impl Cpu {
                 false
             }
             0x21 => {
-                self.cycles += 12;
+                self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
+                        self.registers.set_hl(immediate);
 
                         if self.debug {
                             println!("Opcode: {:#04X} LD HL imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
-                        
-                        self.registers.set_hl(immediate);
                     } else {
                         eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
                     }
@@ -168,7 +167,7 @@ impl Cpu {
                 false
             }
             0x2A => {
-                self.cycles += 8;
+                self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     if self.debug {
                         println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X}, at PC {:#06X}", opcode, value, self.registers.pc);
@@ -182,7 +181,7 @@ impl Cpu {
                 false
             }
             0x31 => {
-                self.cycles += 12;
+                self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -203,7 +202,7 @@ impl Cpu {
                 false
             }
             0x3E => {
-                self.cycles += 8;
+                self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(imm8) = memory.get(self.registers.pc as usize) {
                     self.registers.a = *imm8;
@@ -220,8 +219,8 @@ impl Cpu {
                 if self.debug {
                     println!("Opcode: {:#04X} LD B A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
                 }
-                
-                self.cycles += 4;
+
+                self.cycles = self.cycles.wrapping_add(4);
                 self.registers.b = self.registers.a;
                 false
             }
@@ -229,13 +228,13 @@ impl Cpu {
                 if self.debug {
                     println!("Opcode: {:#04X} LD A B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
                 }
-                
-                self.cycles += 4;
+
+                self.cycles = self.cycles.wrapping_add(4);
                 self.registers.a = self.registers.b;
                 false
             }
             0xC3 => {
-                self.cycles += 16;
+                self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -258,7 +257,7 @@ impl Cpu {
                 }
             }
             0xEA => {
-                self.cycles += 16;
+                self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -279,7 +278,7 @@ impl Cpu {
                 }
                 
                 self.ime_scheduled = true;
-                self.cycles += 4;
+                self.cycles = self.cycles.wrapping_add(4);
                 false
             }
             _ => {
