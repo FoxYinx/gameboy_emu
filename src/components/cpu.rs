@@ -243,9 +243,9 @@ impl Cpu {
             }
             0xEA => {
                 self.cycles += 16;
-                self.registers.pc += 1;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc += 1;
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let address = ((*high as u16) << 8) | *low as u16;
                         memory[address as usize] = self.registers.a;
