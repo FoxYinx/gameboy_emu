@@ -31,10 +31,10 @@ impl Cpu {
             }
             0x0E => {
                 self.cycles += 8;
-                self.registers.pc += 1;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(imm8) = memory.get(self.registers.pc as usize) {
                     if self.debug {
-                        println!("Opcode: {:#04X} LD C imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc - 1);
+                        println!("Opcode: {:#04X} LD C imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
                     }
                     
                     self.registers.c = *imm8;
@@ -45,14 +45,14 @@ impl Cpu {
             }
             0x11 => {
                 self.cycles += 12;
-                self.registers.pc += 1;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc += 1;
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
                         
                         if self.debug {
-                            println!("Opcode: {:#04X} LD DE imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc - 2);
+                            println!("Opcode: {:#04X} LD DE imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
                         
                         self.registers.set_de(immediate);
@@ -87,16 +87,36 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
+            0x20 => {
+                self.cycles += 8;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if !self.registers.get_z() {
+                    if let Some(offset) = memory.get(self.registers.pc as usize) {
+                        let original_pc = self.registers.pc;
+                        self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
+                        self.cycles += 4;
+                        
+                        if self.debug {
+                            println!("Opcode: {:#04X} JP NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, original_pc);
+                        }
+                    } else {
+                        eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc);
+                    }
+                } else if self.debug {
+                    println!("Opcode: {:#04X} JP NZ but Z is true, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
+                }
+                false
+            }
             0x21 => {
                 self.cycles += 12;
-                self.registers.pc += 1;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc += 1;
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
 
                         if self.debug {
-                            println!("Opcode: {:#04X} LD HL imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc - 2);
+                            println!("Opcode: {:#04X} LD HL imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
                         
                         self.registers.set_hl(immediate);
@@ -139,7 +159,7 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | *low as u16;
 
                         if self.debug {
-                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc - 2);
+                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
                         }
 
                         self.registers.pc = address;

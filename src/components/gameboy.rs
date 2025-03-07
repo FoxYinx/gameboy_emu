@@ -29,7 +29,7 @@ impl Gameboy {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let pc_modified = self.cpu.process_opcode(*opcode, &mut self.memory);
                 if !pc_modified {
-                    self.cpu.registers.pc += 1;
+                    self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
                 }
             } else {
                 panic!("Tried to access address outside of ROM")
