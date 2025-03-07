@@ -222,12 +222,14 @@ impl Cpu {
             }
             0xC3 => {
                 self.cycles += 16;
-                if let Some(low) = memory.get((self.registers.pc + 1) as usize) {
-                    if let Some(high) = memory.get((self.registers.pc + 2) as usize) {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
                         let address = ((*high as u16) << 8) | *low as u16;
 
                         if self.debug {
-                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc);
+                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
                         }
 
                         self.registers.pc = address;
