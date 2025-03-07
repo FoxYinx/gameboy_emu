@@ -28,7 +28,7 @@ impl Gameboy {
     pub fn start(&mut self) {
         for _i in 0..1000 {
             if let Some(opcode) = self.cartridge.get(self.cpu.registers.pc as usize) {
-                let pc_modified = self.cpu.process_opcode(*opcode);
+                let pc_modified = self.cpu.process_opcode(*opcode, &self.cartridge);
                 if !pc_modified {
                     self.cpu.registers.pc += 1;
                 }
