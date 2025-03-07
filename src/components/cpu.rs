@@ -68,9 +68,23 @@ impl Cpu {
                 if self.debug {
                     println!("Opcode: {:#04X} LD [DE] A, with DE = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_de(), self.registers.a, self.registers.pc);
                 }
-                
+
                 self.cycles += 8;
                 memory[self.registers.get_de() as usize] = self.registers.a;
+                false
+            }
+            0x1C => {
+                self.cycles += 4;
+                let (new_e, overflowed) = self.registers.e.overflowing_add(1);
+                self.registers.e = new_e;
+
+                if self.debug {
+                    println!("Opcode: {:#04X} INC E, E now is {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.e == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(overflowed);
                 false
             }
             0x21 => {
@@ -100,7 +114,7 @@ impl Cpu {
                     if self.debug {
                         println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X}, at PC {:#06X}", opcode, value, self.registers.pc);
                     }
-                    
+
                     self.registers.a = *value;
                     self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
                 } else {
