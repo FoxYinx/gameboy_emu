@@ -29,17 +29,39 @@ impl Cpu {
                 self.cycles += 4;
                 false
             }
-            0x21 => {
-                if self.debug {
-                    println!("Opcode: {:#04X} LD HL imm16, at PC {:#06X}", opcode, self.registers.pc);
-                }
-
+            0x11 => {
                 self.cycles += 12;
                 self.registers.pc += 1;
                 if let Some(low) = cartridge.get(self.registers.pc as usize) {
                     self.registers.pc += 1;
                     if let Some(high) = cartridge.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
+                        
+                        if self.debug {
+                            println!("Opcode: {:#04X} LD DE imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc - 2);
+                        }
+                        
+                        self.registers.set_de(immediate);
+                    } else {
+                        eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of jump immediate at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
+            0x21 => {
+                self.cycles += 12;
+                self.registers.pc += 1;
+                if let Some(low) = cartridge.get(self.registers.pc as usize) {
+                    self.registers.pc += 1;
+                    if let Some(high) = cartridge.get(self.registers.pc as usize) {
+                        let immediate = ((*high as u16) << 8) | *low as u16;
+
+                        if self.debug {
+                            println!("Opcode: {:#04X} LD HL imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc - 2);
+                        }
+                        
                         self.registers.set_hl(immediate);
                     } else {
                         eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
@@ -53,7 +75,7 @@ impl Cpu {
                 self.cycles += 4;
                 
                 if self.debug {
-                    println!("Opcode: {:#04X} LD B = A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                    println!("Opcode: {:#04X} LD B A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
                 }
                 
                 self.registers.b = self.registers.a;
@@ -66,7 +88,7 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | *low as u16;
 
                         if self.debug {
-                            println!("Opcode: {:#04X} JP {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc);
+                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc - 2);
                         }
 
                         self.registers.pc = address;
