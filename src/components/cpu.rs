@@ -29,6 +29,20 @@ impl Cpu {
                 self.cycles += 4;
                 false
             }
+            0x0E => {
+                self.cycles += 8;
+                self.registers.pc += 1;
+                if let Some(imm8) = cartridge.get(self.registers.pc as usize) {
+                    if self.debug {
+                        println!("Opcode: {:#04X} LD C imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc - 1);
+                    }
+                    
+                    self.registers.c = *imm8;
+                } else {
+                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0x11 => {
                 self.cycles += 12;
                 self.registers.pc += 1;

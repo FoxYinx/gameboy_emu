@@ -2,7 +2,7 @@ pub struct Registers {
     pub(crate) a: u8,
     f: u8,
     pub(crate) b: u8,
-    c: u8,
+    pub(crate) c: u8,
     d: u8,
     e: u8,
     h: u8,
