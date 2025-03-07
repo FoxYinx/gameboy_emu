@@ -241,6 +241,22 @@ impl Cpu {
                     false
                 }
             }
+            0xEA => {
+                self.cycles += 16;
+                self.registers.pc += 1;
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc += 1;
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let address = ((*high as u16) << 8) | *low as u16;
+                        memory[address as usize] = self.registers.a;
+                        
+                        if self.debug {
+                            println!("Opcode: {:#04X} LD [a16] A, a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
+                        }
+                    }
+                }
+                false
+            }
             0xF3 => {
                 if self.debug {
                     println!("Opcode: {:#04X} DI, at PC {:#06X}", opcode, self.registers.pc);
