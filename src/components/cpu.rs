@@ -73,6 +73,20 @@ impl Cpu {
                 memory[self.registers.get_de() as usize] = self.registers.a;
                 false
             }
+            0x14 => {
+                self.cycles += 4;
+                let original = self.registers.d;
+                self.registers.d = self.registers.d.wrapping_add(1);
+
+                if self.debug {
+                    println!("Opcode: {:#04X} INC D, D now is {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.d == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((original & 0x0F) == 0x0F);
+                false
+            }
             0x1C => {
                 self.cycles += 4;
                 let original = self.registers.e;
