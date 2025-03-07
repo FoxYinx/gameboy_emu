@@ -171,13 +171,21 @@ impl Cpu {
                 false
             }
             0x47 => {
-                self.cycles += 4;
-                
                 if self.debug {
                     println!("Opcode: {:#04X} LD B A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
                 }
                 
+                self.cycles += 4;
                 self.registers.b = self.registers.a;
+                false
+            }
+            0x78 => {
+                if self.debug {
+                    println!("Opcode: {:#04X} LD A B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+                
+                self.cycles += 4;
+                self.registers.a = self.registers.b;
                 false
             }
             0xC3 => {
@@ -187,7 +195,7 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | *low as u16;
 
                         if self.debug {
-                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc);
                         }
 
                         self.registers.pc = address;

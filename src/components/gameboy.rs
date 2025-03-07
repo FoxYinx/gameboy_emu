@@ -24,7 +24,7 @@ impl Gameboy {
     }
 
     pub fn start(&mut self) {
-        for _i in 0..10000 {
+        for _i in 0..20000 {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let pc_modified = self.cpu.process_opcode(*opcode, &mut self.memory);
                 if !pc_modified {
