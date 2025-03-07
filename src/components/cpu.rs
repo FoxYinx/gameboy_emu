@@ -84,7 +84,7 @@ impl Cpu {
 
                 self.registers.set_z(self.registers.e == 0);
                 self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) + 1 > 0x0F);
+                self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
             0x21 => {
