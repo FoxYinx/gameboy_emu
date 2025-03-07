@@ -163,7 +163,7 @@ impl Cpu {
                         eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
                     }
                 } else {
-                    eprintln!("Failed to get low value of jump immediate at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get low value of immediate at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
@@ -178,6 +178,27 @@ impl Cpu {
                     self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
                 } else {
                     eprintln!("Failed to get value at [HL] {:#06X}", self.registers.get_hl());
+                }
+                false
+            }
+            0x31 => {
+                self.cycles += 12;
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let immediate = ((*high as u16) << 8) | *low as u16;
+
+                        if self.debug {
+                            println!("Opcode: {:#04X} LD SP imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
+                        }
+
+                        self.registers.sp = immediate;
+                    } else {
+                        eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of immediate at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
