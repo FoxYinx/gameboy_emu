@@ -75,8 +75,8 @@ impl Cpu {
             }
             0x1C => {
                 self.cycles += 4;
-                let (new_e, overflowed) = self.registers.e.overflowing_add(1);
-                self.registers.e = new_e;
+                let original = self.registers.e;
+                self.registers.e = self.registers.e.wrapping_add(1);
 
                 if self.debug {
                     println!("Opcode: {:#04X} INC E, E now is {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
@@ -84,7 +84,7 @@ impl Cpu {
 
                 self.registers.set_z(self.registers.e == 0);
                 self.registers.set_n(false);
-                self.registers.set_h(overflowed);
+                self.registers.set_h((original & 0x0F) + 1 > 0x0F);
                 false
             }
             0x21 => {
