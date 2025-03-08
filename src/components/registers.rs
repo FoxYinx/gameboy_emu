@@ -5,8 +5,8 @@ pub struct Registers {
     pub(crate) c: u8,
     pub(crate) d: u8,
     pub(crate) e: u8,
-    h: u8,
-    l: u8,
+    pub(crate) h: u8,
+    pub(crate) l: u8,
     pub(crate) sp: u16,
     pub(crate) pc: u16
 }
