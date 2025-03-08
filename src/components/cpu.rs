@@ -256,6 +256,34 @@ impl Cpu {
                     false
                 }
             }
+            0xCD => {
+                self.cycles = self.cycles.wrapping_add(24);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let address = ((*high as u16) << 8) | *low as u16;
+                        let return_address = self.registers.pc.wrapping_add(1);
+                        self.registers.sp = self.registers.sp.wrapping_sub(1);
+                        memory[self.registers.sp as usize] = (return_address >> 8) as u8;
+                        self.registers.sp = self.registers.sp.wrapping_sub(1);
+                        memory[self.registers.sp as usize] = return_address as u8;
+
+                        if self.debug {
+                            println!("Opcode: {:#04X} CALL a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                        }
+
+                        self.registers.pc = address;
+                        true
+                    } else {
+                        eprintln!("Failed to get high value of call address at PC {:#06X}", self.registers.pc);
+                        false
+                    }
+                } else {
+                    eprintln!("Failed to get low value of call address at PC {:#06X}", self.registers.pc);
+                    false
+                }
+            }
             0xE0 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
