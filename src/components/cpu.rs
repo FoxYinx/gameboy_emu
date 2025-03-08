@@ -32,7 +32,11 @@ impl Cpu {
     }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
-        println!("A: 01 F: B0 B: 00 C: 13 D: 00 E: D8 H: 01 L: 4D SP: FFFE PC: 00:0100 (00 C3 13 02)");
+        if self.registers.sp == 0xE001 {
+            println!("wtf");
+        }
+        
+        println!("A: {:#04X} F: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} H: {:#04X} L: {:#04X} SP: {:#06X} PC: {:#06X}", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc);
         match opcode { 
             0x00 => {
                 if self.debug {
@@ -417,7 +421,6 @@ impl Cpu {
                     println!("Opcode: {:#04X} PUSH HL, with HL = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, hl, self.registers.sp, self.registers.pc);
                 }
 
-                self.registers.pc = self.registers.pc.wrapping_add(1);
                 false
             }
             0xEA => {
