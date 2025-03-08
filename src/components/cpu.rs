@@ -39,7 +39,7 @@ impl Cpu {
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
         if self.debug_registers {
-            println!("A: {:#04X} F: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} H: {:#04X} L: {:#04X} SP: {:#06X} PC: {:#04X} ({:#04X} {:#04X} {:#04X} {:#04X})", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc, *memory.get(self.registers.pc as usize).unwrap(), memory.get(self.registers.pc as usize).unwrap().wrapping_add(1), memory.get(self.registers.pc as usize).unwrap().wrapping_add(2), memory.get(self.registers.pc as usize).unwrap().wrapping_add(3));
+            println!("A: {:02X} F: {:02X} B: {:02X} C: {:02X} D: {:02X} E: {:02X} H: {:02X} L: {:02X} SP: {:04X} PC: 00:{:04X} ({:02X} {:02X} {:02X} {:02X})", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc, *memory.get(self.registers.pc as usize).unwrap(), memory.get(self.registers.pc as usize).unwrap().wrapping_add(1), memory.get(self.registers.pc as usize).unwrap().wrapping_add(2), memory.get(self.registers.pc as usize).unwrap().wrapping_add(3));
         }
         
         match opcode { 
@@ -455,6 +455,22 @@ impl Cpu {
                 
                 self.ime_scheduled = true;
                 self.cycles = self.cycles.wrapping_add(4);
+                false
+            }
+            0xF5 => {
+                self.cycles = self.cycles.wrapping_add(16);
+                let af = self.registers.get_af();
+                let low = af as u8;
+                let high = (af >> 8) as u8;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, high);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, low);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} PUSH AF, with AF = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, af, self.registers.sp, self.registers.pc);
+                }
+
                 false
             }
             _ => {
