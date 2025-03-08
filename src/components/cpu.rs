@@ -112,6 +112,18 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
+            0x18 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(offset) = memory.get(self.registers.pc as usize) {
+                    if self.debug {
+                        println!("Opcode: {:#04X} JR e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
+                    }
+                    
+                    self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
+                }
+                false
+            }
             0x1C => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.e;
@@ -131,18 +143,17 @@ impl Cpu {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if !self.registers.get_z() {
                     if let Some(offset) = memory.get(self.registers.pc as usize) {
-                        let original_pc = self.registers.pc;
+                        if self.debug {
+                            println!("Opcode: {:#04X} JR NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
+                        }
+                        
                         self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
                         self.cycles = self.cycles.wrapping_add(4);
-                        
-                        if self.debug {
-                            println!("Opcode: {:#04X} JP NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, original_pc);
-                        }
                     } else {
                         eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc);
                     }
                 } else if self.debug {
-                    println!("Opcode: {:#04X} JP NZ but Z is true, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
+                    println!("Opcode: {:#04X} JR NZ but Z is true, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
                 }
                 false
             }
