@@ -191,6 +191,7 @@ impl Cpu {
                 false
             }
             0x23 => {
+                self.cycles = self.cycles.wrapping_add(8);
                 self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
 
                 if self.debug_instructions {
