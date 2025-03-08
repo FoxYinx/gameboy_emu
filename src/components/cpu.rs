@@ -235,6 +235,15 @@ impl Cpu {
                 self.registers.b = self.registers.a;
                 false
             }
+            0x6B => {
+                if self.debug {
+                    println!("Opcode: {:#04X} LD L E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.l = self.registers.e;
+                false
+            }
             0x78 => {
                 if self.debug {
                     println!("Opcode: {:#04X} LD A B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
@@ -365,7 +374,7 @@ impl Cpu {
                 if self.debug {
                     println!("Opcode: {:#04X} PUSH HL, with HL = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, hl, self.registers.sp, self.registers.pc);
                 }
-                
+
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 false
             }
