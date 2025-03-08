@@ -352,6 +352,23 @@ impl Cpu {
                 }
                 false
             }
+            0xE5 => {
+                self.cycles = self.cycles.wrapping_add(16);
+                let hl = self.registers.get_hl();
+                let low = hl as u8;
+                let high = (hl >> 8) as u8;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory[self.registers.sp as usize] = high;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory[self.registers.sp as usize] = low;
+
+                if self.debug {
+                    println!("Opcode: {:#04X} PUSH HL, with HL = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, hl, self.registers.sp, self.registers.pc);
+                }
+                
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                false
+            }
             0xEA => {
                 self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
