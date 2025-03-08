@@ -415,10 +415,10 @@ impl Cpu {
                             println!("Opcode: {:#04X} POP HL, with HL = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.sp, self.registers.pc);
                         }
                     } else {
-                        eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                        eprintln!("Failed to get high value of pop at PC {:#06X}", self.registers.pc);
                     }
                 } else {
-                    eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get low value of pop at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
@@ -455,6 +455,25 @@ impl Cpu {
                     }
                 } else {
                     println!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
+            0xF1 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if let Some(low) = memory.get(self.registers.sp as usize) {
+                    self.registers.sp = self.registers.sp.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        self.registers.set_af(((*high as u16) << 8) | *low as u16);
+
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} POP AF, with AF = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_af(), self.registers.sp, self.registers.pc);
+                        }
+                    } else {
+                        eprintln!("Failed to get high value of pop at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of pop at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
