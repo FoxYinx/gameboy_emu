@@ -18,6 +18,14 @@ impl Gameboy {
     pub fn cartridge_to_rom(&mut self, filename: String) {
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
         self.memory.write_cartridge(&cartridge_data);
+        if let Some(header_checksum) = self.memory.get(0x014D) {
+            if *header_checksum != 0x00 {
+                self.cpu.registers.set_h(true);
+                self.cpu.registers.set_c(true);
+            }
+        } else {
+            eprintln!("Unable to access header checksum at 0x014D");
+        }
     }
 
     pub fn toggle_debug(&mut self) {
