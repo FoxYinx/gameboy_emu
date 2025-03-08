@@ -119,7 +119,7 @@ impl Cpu {
                     if self.debug {
                         println!("Opcode: {:#04X} JR e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
                     }
-                    
+
                     self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
                 }
                 false
@@ -146,7 +146,7 @@ impl Cpu {
                         if self.debug {
                             println!("Opcode: {:#04X} JR NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
                         }
-                        
+
                         self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
                         self.cycles = self.cycles.wrapping_add(4);
                     } else {
@@ -285,6 +285,29 @@ impl Cpu {
                     false
                 }
             }
+            0xC9 => {
+                self.cycles = self.cycles.wrapping_add(16);
+                if let Some(low) = memory.get(self.registers.sp as usize) {
+                    self.registers.sp = self.registers.sp.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        let return_address = ((*high as u16) << 8) | *low as u16;
+                        
+                        if self.debug {
+                            println!("Opcode: {:#04X} RET to {:#06X}, PC was {:#06X}", opcode, return_address, self.registers.pc);
+                        }
+                        
+                        self.registers.pc = return_address;
+                        true
+                    } else {
+                        eprintln!("Failed to get high value of return address at PC {:#06X}", self.registers.pc);
+                        false
+                    }
+                } else {
+                    eprintln!("Failed to get low value of return address at PC {:#06X}", self.registers.pc);
+                    false
+                }
+            }
             0xCD => {
                 self.cycles = self.cycles.wrapping_add(24);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -341,7 +364,11 @@ impl Cpu {
                         if self.debug {
                             println!("Opcode: {:#04X} LD [a16] A, a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
                         }
+                    } else {
+                        println!("Failed to get high value of a16 at PC {:#06X}", self.registers.pc)
                     }
+                } else {
+                    println!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc)
                 }
                 false
             }
