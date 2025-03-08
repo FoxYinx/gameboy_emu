@@ -3,8 +3,9 @@ use crate::components::registers::Registers;
 
 pub struct Cpu {
     pub(crate) registers: Registers,
+    debug_registers: bool,
     cycles: u64,
-    debug: bool,
+    debug_instructions: bool,
     ime: bool,
     ime_scheduled: bool
 }
@@ -13,15 +14,20 @@ impl Cpu {
     pub fn new() -> Self {
         Cpu {
             registers: Registers::default(),
+            debug_registers: false,
             cycles: 0,
-            debug: false,
+            debug_instructions: false,
             ime: true,
             ime_scheduled: false
         }
     }
     
-    pub fn toggle_debug(&mut self) {
-        self.debug = !self.debug
+    pub fn toggle_debug_instructions(&mut self) {
+        self.debug_instructions = !self.debug_instructions
+    }
+
+    pub fn toggle_debug_registers(&mut self) {
+        self.debug_registers = !self.debug_registers
     }
 
     pub(crate) fn update_ime(&mut self) {
@@ -32,14 +38,13 @@ impl Cpu {
     }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
-        if self.registers.sp == 0xE001 {
-            println!("wtf");
+        if self.debug_registers {
+            println!("A: {:#04X} F: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} H: {:#04X} L: {:#04X} SP: {:#06X} PC: {:#04X} ({:#04X} {:#04X} {:#04X} {:#04X})", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc, *memory.get(self.registers.pc as usize).unwrap(), memory.get(self.registers.pc as usize).unwrap().wrapping_add(1), memory.get(self.registers.pc as usize).unwrap().wrapping_add(2), memory.get(self.registers.pc as usize).unwrap().wrapping_add(3));
         }
         
-        println!("A: {:#04X} F: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} H: {:#04X} L: {:#04X} SP: {:#06X} PC: {:#06X}", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc);
         match opcode { 
             0x00 => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} NOP, at PC {:#06X}", opcode, self.registers.pc);
                 }
                 
@@ -51,7 +56,7 @@ impl Cpu {
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_sub(1);
 
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} DEC C, C now is {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
                 }
 
@@ -64,7 +69,7 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    if self.debug {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} LD C imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
                     }
                     
@@ -82,7 +87,7 @@ impl Cpu {
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
                         
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} LD DE imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
                         
@@ -96,7 +101,7 @@ impl Cpu {
                 false
             }
             0x12 => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD [DE] A, with DE = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_de(), self.registers.a, self.registers.pc);
                 }
 
@@ -109,7 +114,7 @@ impl Cpu {
                 let original = self.registers.d;
                 self.registers.d = self.registers.d.wrapping_add(1);
 
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} INC D, D now is {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
                 }
 
@@ -122,7 +127,7 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(offset) = memory.get(self.registers.pc as usize) {
-                    if self.debug {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} JR e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
                     }
 
@@ -137,7 +142,7 @@ impl Cpu {
                 let original = self.registers.e;
                 self.registers.e = self.registers.e.wrapping_add(1);
 
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} INC E, E now is {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
                 }
 
@@ -151,7 +156,7 @@ impl Cpu {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if !self.registers.get_z() {
                     if let Some(offset) = memory.get(self.registers.pc as usize) {
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} JR NZ e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
                         }
 
@@ -160,7 +165,7 @@ impl Cpu {
                     } else {
                         eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc);
                     }
-                } else if self.debug {
+                } else if self.debug_instructions {
                     println!("Opcode: {:#04X} JR NZ but Z is true, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
                 }
                 false
@@ -174,7 +179,7 @@ impl Cpu {
                         let immediate = ((*high as u16) << 8) | *low as u16;
                         self.registers.set_hl(immediate);
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} LD HL imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
                     } else {
@@ -188,7 +193,7 @@ impl Cpu {
             0x2A => {
                 self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    if self.debug {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X} & HL = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_hl().wrapping_add(1), self.registers.pc);
                     }
 
@@ -207,7 +212,7 @@ impl Cpu {
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let immediate = ((*high as u16) << 8) | *low as u16;
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} LD SP imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
                         }
 
@@ -226,7 +231,7 @@ impl Cpu {
                 if let Some(imm8) = memory.get(self.registers.pc as usize) {
                     self.registers.a = *imm8;
                     
-                    if self.debug {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} LD A imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
                     }
                 } else {
@@ -235,7 +240,7 @@ impl Cpu {
                 false
             }
             0x47 => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD B A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
                 }
 
@@ -244,7 +249,7 @@ impl Cpu {
                 false
             }
             0x6B => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD L E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
                 }
 
@@ -253,7 +258,7 @@ impl Cpu {
                 false
             }
             0x78 => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD A B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
                 }
 
@@ -262,7 +267,7 @@ impl Cpu {
                 false
             }
             0x7C => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD A H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
                 }
 
@@ -271,7 +276,7 @@ impl Cpu {
                 false
             }
             0x7D => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} LD A L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
                 }
 
@@ -287,7 +292,7 @@ impl Cpu {
                         self.registers.sp = self.registers.sp.wrapping_add(1);
                         self.registers.set_bc(((*high as u16) << 8) | *low as u16);
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} POP BC, with BC = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_bc(), self.registers.sp, self.registers.pc);
                         }
                     } else {
@@ -306,7 +311,7 @@ impl Cpu {
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let address = ((*high as u16) << 8) | *low as u16;
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} JP a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
                         }
 
@@ -329,7 +334,7 @@ impl Cpu {
                         self.registers.sp = self.registers.sp.wrapping_add(1);
                         let return_address = ((*high as u16) << 8) | *low as u16;
                         
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} RET to {:#06X}, PC was {:#06X}", opcode, return_address, self.registers.pc);
                         }
                         
@@ -357,7 +362,7 @@ impl Cpu {
                         self.registers.sp = self.registers.sp.wrapping_sub(1);
                         memory.write_memory(self.registers.sp as usize, return_address as u8);
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} CALL a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
                         }
 
@@ -378,7 +383,7 @@ impl Cpu {
                 if let Some(value) = memory.get(self.registers.pc as usize) {
                     let address = 0xFF00 | *value as u16;
                     
-                    if self.debug {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} LDH [a8] A, with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, *value, self.registers.a, self.registers.pc.wrapping_sub(1));
                     }
 
@@ -396,7 +401,7 @@ impl Cpu {
                         self.registers.sp = self.registers.sp.wrapping_add(1);
                         self.registers.set_hl(((*high as u16) << 8) | *low as u16);
 
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} POP HL, with HL = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.sp, self.registers.pc);
                         }
                     } else {
@@ -417,7 +422,7 @@ impl Cpu {
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, low);
 
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} PUSH HL, with HL = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, hl, self.registers.sp, self.registers.pc);
                 }
 
@@ -432,7 +437,7 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | *low as u16;
                         memory.write_memory(address as usize, self.registers.a);
                         
-                        if self.debug {
+                        if self.debug_instructions {
                             println!("Opcode: {:#04X} LD [a16] A, a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
                         }
                     } else {
@@ -444,7 +449,7 @@ impl Cpu {
                 false
             }
             0xF3 => {
-                if self.debug {
+                if self.debug_instructions {
                     println!("Opcode: {:#04X} DI, at PC {:#06X}", opcode, self.registers.pc);
                 }
                 
