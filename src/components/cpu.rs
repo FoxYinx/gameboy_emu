@@ -271,6 +271,25 @@ impl Cpu {
                 self.registers.a = self.registers.l;
                 false
             }
+            0xC1 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if let Some(low) = memory.get(self.registers.sp as usize) {
+                    self.registers.sp = self.registers.sp.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        self.registers.set_bc(((*high as u16) << 8) | *low as u16);
+
+                        if self.debug {
+                            println!("Opcode: {:#04X} POP BC, with BC = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_bc(), self.registers.sp, self.registers.pc);
+                        }
+                    } else {
+                        eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0xC3 => {
                 self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
