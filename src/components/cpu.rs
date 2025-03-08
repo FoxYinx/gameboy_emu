@@ -260,13 +260,13 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
-                    let value = *value;
-                    let address = 0xFF00 | value as u16;
-                    memory[address as usize] = self.registers.a;
+                    let address = 0xFF00 | *value as u16;
                     
                     if self.debug {
-                        println!("Opcode: {:#04X} LDH [a8] A, with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, value, self.registers.a, self.registers.pc.wrapping_sub(1));
+                        println!("Opcode: {:#04X} LDH [a8] A, with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, *value, self.registers.a, self.registers.pc.wrapping_sub(1));
                     }
+                    
+                    memory[address as usize] = self.registers.a;
                 } else {
                     eprintln!("Failed to get value at PC {:#06X}", self.registers.pc)
                 }
