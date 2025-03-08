@@ -32,6 +32,7 @@ impl Cpu {
     }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
+        println!("A: 01 F: B0 B: 00 C: 13 D: 00 E: D8 H: 01 L: 4D SP: FFFE PC: 00:0100 (00 C3 13 02)");
         match opcode { 
             0x00 => {
                 if self.debug {
@@ -47,7 +48,7 @@ impl Cpu {
                 self.registers.c = self.registers.c.wrapping_sub(1);
 
                 if self.debug {
-                    println!("Opcode: {:#04X} DEC C, C now is {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                    println!("Opcode: {:#04X} DEC C, C now is {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
                 }
 
                 self.registers.set_z(self.registers.c == 0);
@@ -184,7 +185,7 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     if self.debug {
-                        println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X}, at PC {:#06X}", opcode, value, self.registers.pc);
+                        println!("Opcode: {:#04X} LD A [HL+], with [HL] = {:#04X} & HL = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_hl().wrapping_add(1), self.registers.pc);
                     }
 
                     self.registers.a = *value;

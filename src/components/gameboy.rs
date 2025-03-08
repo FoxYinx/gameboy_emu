@@ -16,6 +16,7 @@ impl Gameboy {
     }
 
     pub fn cartridge_to_rom(&mut self, filename: String) {
+        println!("Loading ROM: {}", filename);
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
         self.memory.write_cartridge(&cartridge_data);
         if let Some(header_checksum) = self.memory.get(0x014D) {
@@ -33,7 +34,7 @@ impl Gameboy {
     }
 
     pub fn start(&mut self) {
-        for _i in 0..100_000_000 {
+        for _i in 0..15 {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let pc_modified = self.cpu.process_opcode(*opcode, &mut self.memory);
                 self.cpu.update_ime();
