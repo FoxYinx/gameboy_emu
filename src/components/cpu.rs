@@ -190,6 +190,15 @@ impl Cpu {
                 }
                 false
             }
+            0x23 => {
+                self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC HL, HL now is {:#06X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.pc);
+                }
+                
+                false
+            }
             0x2A => {
                 self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
