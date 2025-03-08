@@ -122,6 +122,8 @@ impl Cpu {
                     }
 
                     self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
+                } else {
+                    eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc)
                 }
                 false
             }
