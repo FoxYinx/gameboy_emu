@@ -1,3 +1,4 @@
+use crate::components::memory::Memory;
 use crate::components::registers::Registers;
 
 pub struct Cpu {
@@ -30,7 +31,7 @@ impl Cpu {
         }
     }
     
-    pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut [u8; 0x10000]) -> bool {
+    pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
         match opcode { 
             0x00 => {
                 if self.debug {
@@ -95,7 +96,7 @@ impl Cpu {
                 }
 
                 self.cycles = self.cycles.wrapping_add(8);
-                memory[self.registers.get_de() as usize] = self.registers.a;
+                memory.write_memory(self.registers.get_de() as usize, self.registers.a);
                 false
             }
             0x14 => {
@@ -345,9 +346,9 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | *low as u16;
                         let return_address = self.registers.pc.wrapping_add(1);
                         self.registers.sp = self.registers.sp.wrapping_sub(1);
-                        memory[self.registers.sp as usize] = (return_address >> 8) as u8;
+                        memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                         self.registers.sp = self.registers.sp.wrapping_sub(1);
-                        memory[self.registers.sp as usize] = return_address as u8;
+                        memory.write_memory(self.registers.sp as usize, return_address as u8);
 
                         if self.debug {
                             println!("Opcode: {:#04X} CALL a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
@@ -373,8 +374,8 @@ impl Cpu {
                     if self.debug {
                         println!("Opcode: {:#04X} LDH [a8] A, with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, *value, self.registers.a, self.registers.pc.wrapping_sub(1));
                     }
-                    
-                    memory[address as usize] = self.registers.a;
+
+                    memory.write_memory(address as usize, self.registers.a);
                 } else {
                     eprintln!("Failed to get value at PC {:#06X}", self.registers.pc)
                 }
@@ -405,9 +406,9 @@ impl Cpu {
                 let low = hl as u8;
                 let high = (hl >> 8) as u8;
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory[self.registers.sp as usize] = high;
+                memory.write_memory(self.registers.sp as usize, high);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory[self.registers.sp as usize] = low;
+                memory.write_memory(self.registers.sp as usize, low);
 
                 if self.debug {
                     println!("Opcode: {:#04X} PUSH HL, with HL = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, hl, self.registers.sp, self.registers.pc);
@@ -423,7 +424,7 @@ impl Cpu {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
                     if let Some(high) = memory.get(self.registers.pc as usize) {
                         let address = ((*high as u16) << 8) | *low as u16;
-                        memory[address as usize] = self.registers.a;
+                        memory.write_memory(address as usize, self.registers.a);
                         
                         if self.debug {
                             println!("Opcode: {:#04X} LD [a16] A, a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
