@@ -478,6 +478,19 @@ impl Cpu {
                 self.registers.set_c(false);
                 false
             }
+            0xB7 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A A, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.a, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a |= self.registers.a;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                false
+            }
             0xC1 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
