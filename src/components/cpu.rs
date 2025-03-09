@@ -348,7 +348,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} OR C, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.c, self.registers.pc);
                 }
-                
+
                 self.cycles = self.cycles.wrapping_add(4);
                 self.registers.a |= self.registers.c;
                 self.registers.set_z(self.registers.a == 0x00);
@@ -546,7 +546,7 @@ impl Cpu {
                         if self.debug_instructions {
                             println!("Opcode: {:#04X} LDH A [a8], with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, *value, self.registers.a, self.registers.pc.wrapping_sub(1));
                         }
-                        
+
                         self.registers.a = *goal_value;
                     } else {
                         eprintln!("Failed to get value at address = {:#06X}", address);
@@ -598,6 +598,24 @@ impl Cpu {
                     println!("Opcode: {:#04X} PUSH AF, with AF = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, af, self.registers.sp, self.registers.pc);
                 }
 
+                false
+            }
+            0xFE => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    let a = self.registers.a;
+                    self.registers.set_z(a == *n8);
+                    self.registers.set_n(true);
+                    self.registers.set_h((a & 0x0F) < (*n8 & 0x0F));
+                    self.registers.set_c(a < *n8);
+                    
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} CP A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, a, *n8, self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get high n8 at PC {:#06X}", self.registers.pc);
+                }
                 false
             }
             _ => {
