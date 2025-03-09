@@ -496,6 +496,15 @@ impl Cpu {
                 }
                 false
             }
+            0x4F => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.c = self.registers.a;
+                false
+            }
             0x56 => {
                 self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
