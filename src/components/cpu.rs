@@ -564,6 +564,25 @@ impl Cpu {
 
                 false
             }
+            0xC6 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    let a = self.registers.a;
+                    self.registers.a = self.registers.a.wrapping_add(*value);
+                    self.registers.set_z(self.registers.a == 0x00);
+                    self.registers.set_n(false);
+                    self.registers.set_h((a & 0x0F) + (self.registers.a & 0x0F) > 0x0F);
+                    self.registers.set_c(a as u16 + self.registers.a as u16 > 0xFF);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} ADD A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, a, *value, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
             0xC9 => {
                 self.cycles = self.cycles.wrapping_add(16);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
@@ -670,7 +689,8 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
-                    self.registers.set_z((self.registers.a & *value) == 0x00);
+                    self.registers.a &= *value;
+                    self.registers.set_z(self.registers.a == 0x00);
                     self.registers.set_n(false);
                     self.registers.set_h(true);
                     self.registers.set_c(false);
