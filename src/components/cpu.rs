@@ -537,6 +537,25 @@ impl Cpu {
                 }
                 false
             }
+            0xF0 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    let address = 0xFF00 | *value as u16;
+                    if let Some(goal_value) = memory.get(address as usize) {
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} LDH A [a8], with a8 = {:#04X} & A = {:#04X} at PC {:#06X}", opcode, *value, self.registers.a, self.registers.pc.wrapping_sub(1));
+                        }
+                        
+                        self.registers.a = *goal_value;
+                    } else {
+                        eprintln!("Failed to get value at address = {:#06X}", address);
+                    }
+                } else {
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
             0xF1 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
