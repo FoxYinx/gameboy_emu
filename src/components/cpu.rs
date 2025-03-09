@@ -233,6 +233,22 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
+            0x1F => {
+                self.cycles = self.cycles.wrapping_add(4);
+                let old_carry = self.registers.get_c() as u8;
+                let new_carry = self.registers.a & 0x01;
+                self.registers.a  = (self.registers.a >> 1) | (old_carry << 7);
+                self.registers.set_z(false);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(new_carry != 0);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RRA, A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+                
+                false
+            }
             0x20 => {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
