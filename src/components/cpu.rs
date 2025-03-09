@@ -51,6 +51,27 @@ impl Cpu {
                 self.cycles = self.cycles.wrapping_add(4);
                 false
             }
+            0x01 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let immediate = ((*high as u16) << 8) | *low as u16;
+
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} LD BC imm16, with imm16 = {:#06X}, at PC {:#06X}", opcode, immediate, self.registers.pc.wrapping_sub(2));
+                        }
+
+                        self.registers.set_bc(immediate);
+                    } else {
+                        eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of immediate at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0x0D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.c;
@@ -96,7 +117,7 @@ impl Cpu {
                         eprintln!("Failed to get high value of immediate at PC {:#06X}", self.registers.pc);
                     }
                 } else {
-                    eprintln!("Failed to get low value of jump immediate at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get low value of immediate at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
