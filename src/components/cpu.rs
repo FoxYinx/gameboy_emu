@@ -909,6 +909,25 @@ impl Cpu {
                     false
                 }
             }
+            0xD1 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if let Some(low) = memory.get(self.registers.sp as usize) {
+                    self.registers.sp = self.registers.sp.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        self.registers.set_de(((*high as u16) << 8) | *low as u16);
+
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} POP DE, with DE = {:#06X}, SP = {:#06X}) at PC {:#06X}", opcode, self.registers.get_de(), self.registers.sp, self.registers.pc);
+                        }
+                    } else {
+                        eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0xD5 => {
                 self.cycles = self.cycles.wrapping_add(16);
                 let de = self.registers.get_de();
