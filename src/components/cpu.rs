@@ -478,7 +478,7 @@ impl Cpu {
 
                     memory.write_memory(address as usize, self.registers.a);
                 } else {
-                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
@@ -530,10 +530,10 @@ impl Cpu {
                             println!("Opcode: {:#04X} LD [a16] A, a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
                         }
                     } else {
-                        println!("Failed to get high value of a16 at PC {:#06X}", self.registers.pc)
+                        eprintln!("Failed to get high value of a16 at PC {:#06X}", self.registers.pc);
                     }
                 } else {
-                    println!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
@@ -552,7 +552,7 @@ impl Cpu {
                         eprintln!("Failed to get value at address = {:#06X}", address);
                     }
                 } else {
-                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
@@ -598,6 +598,30 @@ impl Cpu {
                     println!("Opcode: {:#04X} PUSH AF, with AF = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, af, self.registers.sp, self.registers.pc);
                 }
 
+                false
+            }
+            0xFA => {
+                self.cycles = self.cycles.wrapping_add(16);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let address = ((*high as u16) << 8) | *low as u16;
+                        if let Some(value_goal) = memory.get(address as usize) {
+                            self.registers.a = *value_goal;
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} LD A [a16], a16 = {:#06X} & A = {:#04X} at PC {:#06X}", opcode, address, self.registers.a, self.registers.pc.wrapping_sub(2));
+                            }
+                        } else {
+                            eprintln!("Failed to get value at address = {:#06X}", address);
+                        }
+                    } else {
+                        eprintln!("Failed to get high value of a16 at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc);
+                }
                 false
             }
             0xFE => {
