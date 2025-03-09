@@ -168,6 +168,16 @@ impl Cpu {
                 memory.write_memory(self.registers.get_de() as usize, self.registers.a);
                 false
             }
+            0x13 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.set_de(self.registers.get_de().wrapping_add(1));
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC DE, DE now is {:#06X}, at PC {:#06X}", opcode, self.registers.get_de(), self.registers.pc);
+                }
+
+                false
+            }
             0x14 => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.d;
