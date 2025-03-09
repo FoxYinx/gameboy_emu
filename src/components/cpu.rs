@@ -196,6 +196,19 @@ impl Cpu {
                 }
                 false
             }
+            0x1A => {
+                self.cycles = self.cycles.wrapping_add(8);
+                if let Some(value) = memory.get(self.registers.get_de() as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD A [DE], with [DE] = {:#04X} & DE = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_de().wrapping_add(1), self.registers.pc);
+                    }
+
+                    self.registers.a = *value;
+                } else {
+                    eprintln!("Failed to get value at [DE] {:#06X}", self.registers.get_de());
+                }
+                false
+            }
             0x1C => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.e;
@@ -404,7 +417,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD [HL] A, with HL = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.a, self.registers.pc);
                 }
-                
+
                 self.cycles = self.cycles.wrapping_add(8);
                 memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
                 false
