@@ -336,6 +336,22 @@ impl Cpu {
                     false
                 }
             }
+            0xC5 => {
+                self.cycles = self.cycles.wrapping_add(16);
+                let bc = self.registers.get_bc();
+                let low = bc as u8;
+                let high = (bc >> 8) as u8;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, high);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, low);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} PUSH BC, with BC = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, bc, self.registers.sp, self.registers.pc);
+                }
+
+                false
+            }
             0xC9 => {
                 self.cycles = self.cycles.wrapping_add(16);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
