@@ -559,6 +559,24 @@ impl Cpu {
                 self.registers.l = self.registers.e;
                 false
             }
+            0x70 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] B, with HL = {:#06X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.b, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.b);
+                false
+            }
+            0x71 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] C, with HL = {:#06X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.c, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.c);
+                false
+            }
             0x72 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD [HL] D, with HL = {:#06X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.d, self.registers.pc);
@@ -566,6 +584,33 @@ impl Cpu {
 
                 self.cycles = self.cycles.wrapping_add(8);
                 memory.write_memory(self.registers.get_hl() as usize, self.registers.d);
+                false
+            }
+            0x73 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] E, with HL = {:#06X} & E = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.e, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.e);
+                false
+            }
+            0x74 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] H, with HL = {:#06X} & H = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.h, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.h);
+                false
+            }
+            0x75 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] L, with HL = {:#06X} & L = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.l, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.l);
                 false
             }
             0x77 => {
