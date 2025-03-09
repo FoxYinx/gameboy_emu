@@ -909,6 +909,34 @@ impl Cpu {
                     false
                 }
             }
+            0xCE => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    let a = self.registers.a;
+                    let carry = self.registers.get_c() as u8;
+                    let sum = a.wrapping_add(*value).wrapping_add(carry);
+                    self.registers.a = sum;
+
+                    self.registers.set_z(sum == 0);
+                    self.registers.set_n(false);
+
+                    let a_lower = a & 0x0F;
+                    let d8_lower = *value & 0x0F;
+                    let sum_lower = a_lower + d8_lower + carry;
+                    self.registers.set_h(sum_lower > 0x0F);
+
+                    let sum_full = (a as u16) + (*value as u16) + (carry as u16);
+                    self.registers.set_c(sum_full > 0xFF);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} ADC A n8, with n8 = {:#04X} & A = {:#04X} & C={}, at PC {:#06X}", opcode, *value, a, carry, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to retrieve value at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0xD1 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
