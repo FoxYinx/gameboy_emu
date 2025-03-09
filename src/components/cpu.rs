@@ -517,6 +517,23 @@ impl Cpu {
 
                 false
             }
+            0xE6 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    self.registers.set_z((self.registers.a & *value) == 0x00);
+                    self.registers.set_n(false);
+                    self.registers.set_h(true);
+                    self.registers.set_c(false);
+                    
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} AND A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, self.registers.a, *value, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
             0xEA => {
                 self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -633,7 +650,7 @@ impl Cpu {
                     self.registers.set_n(true);
                     self.registers.set_h((a & 0x0F) < (*n8 & 0x0F));
                     self.registers.set_c(a < *n8);
-                    
+
                     if self.debug_instructions {
                         println!("Opcode: {:#04X} CP A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, a, *n8, self.registers.pc);
                     }
