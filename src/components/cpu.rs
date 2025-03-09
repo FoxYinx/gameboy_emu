@@ -920,6 +920,24 @@ impl Cpu {
                 }
                 false
             }
+            0xEE => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    self.registers.a ^= *value;
+                    self.registers.set_z(self.registers.a == 0x00);
+                    self.registers.set_n(false);
+                    self.registers.set_h(false);
+                    self.registers.set_c(false);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} XOR A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, self.registers.a, *value, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
             0xF0 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
