@@ -272,6 +272,16 @@ impl Cpu {
                 }
                 false
             }
+            0x22 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL+] A, with HL = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.a, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
+                self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
+                false
+            }
             0x23 => {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.set_hl(self.registers.get_hl().wrapping_add(1));
