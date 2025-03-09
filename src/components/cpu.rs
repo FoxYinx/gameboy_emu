@@ -353,6 +353,20 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
+            0x2D => {
+                self.cycles = self.cycles.wrapping_add(4);
+                let original = self.registers.l;
+                self.registers.l = self.registers.l.wrapping_sub(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC L, L now is {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.l == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((original & 0x0F) == 0x00);
+                false
+            }
             0x31 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
