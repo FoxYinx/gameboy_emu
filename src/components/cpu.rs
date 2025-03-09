@@ -538,7 +538,7 @@ impl Cpu {
                     if self.debug_instructions {
                         println!("Opcode: {:#04X} XOR A [HL], A = {:#04X}, [HL] = {:#04X}, at PC {:#06X}", opcode, self.registers.a, *value, self.registers.pc);
                     }
-                    
+
                     self.registers.a ^= value;
                     self.registers.set_z(self.registers.a == 0x00);
                     self.registers.set_n(false);
@@ -710,6 +710,19 @@ impl Cpu {
                     eprintln!("Failed to get low value of return address at PC {:#06X}", self.registers.pc);
                     false
                 }
+            }
+            0xCB => {
+                self.cycles += 4;
+                if self.debug_instructions {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(prefix_opcode) = memory.get(self.registers.pc as usize) {
+                        println!("Opcode: {:#04X} PREFIX, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
+                        self.process_prefix(*prefix_opcode, memory);
+                    } else {
+                        eprintln!("Failed to access prefix_opcode at PC {:#06X}", self.registers.pc);
+                    }
+                }
+                false
             }
             0xCD => {
                 self.cycles = self.cycles.wrapping_add(24);
@@ -971,6 +984,108 @@ impl Cpu {
             _ => {
                 panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc)
             }
+        }
+    }
+
+    fn process_prefix(&mut self, prefix: u8, memory: &mut Memory) {
+        let operand = prefix & 0x07;
+        let bit = (prefix >> 3) & 0x07;
+        let group = prefix >> 6;
+
+        match group {
+            0b00 => self.handle_rotate_shift(prefix, operand, memory),
+            0b01 => self.handle_bit_test(bit, operand, memory),
+            0b10 => self.handle_bit_reset(bit, operand, memory),
+            0b11 => self.handle_bit_set(bit, operand, memory),
+            _ => unreachable!(),
+        }
+    }
+
+    fn handle_rotate_shift(&mut self, opcode: u8, operand: u8, memory: &mut Memory, ) {
+        let value = self.get_operand_value(operand, memory);
+        let (result, new_c) = match opcode & 0xF8 {
+            0x00 => (value.rotate_left(1), (value >> 7) & 1), // RLC
+            0x08 => (value.rotate_right(1), value & 1),       // RRC
+            0x10 => {
+                let carry = self.registers.get_c() as u8;
+                let result = (value << 1) | carry;
+                let new_c = (value >> 7) & 1;
+                (result, new_c)
+            } // RL
+            0x18 => {
+                let carry = self.registers.get_c() as u8;
+                let result = (value >> 1) | (carry << 7);
+                let new_c = value & 1;
+                (result, new_c)
+            } // RR
+            0x20 => (value << 1, (value >> 7) & 1), // SLA
+            0x28 => ((value as i8 >> 1) as u8, value & 1), // SRA (arithmetic shift)
+            0x30 => (value.rotate_left(4), 0), // SWAP
+            0x38 => (value >> 1, value & 1), // SRL
+            _ => panic!("Unimplemented rotate/shift opcode: 0xCB{:#04X}", opcode),
+        };
+
+        self.set_operand_value(operand, result, memory);
+        self.registers.set_z(result == 0);
+        self.registers.set_n(false);
+        self.registers.set_h(false);
+        self.registers.set_c(new_c != 0);
+    }
+
+    fn handle_bit_test(&mut self, bit: u8, operand: u8, memory: &mut Memory) {
+        let value = self.get_operand_value(operand, memory);
+        let mask = 1 << bit;
+        self.registers.set_z((value & mask) == 0);
+        self.registers.set_n(false);
+        self.registers.set_h(true);
+        // C flag is unaffected for BIT
+    }
+
+    fn handle_bit_reset(&mut self, bit: u8, operand: u8, memory: &mut Memory) {
+        let value = self.get_operand_value(operand, memory);
+        let result = value & !(1 << bit);
+        self.set_operand_value(operand, result, memory);
+    }
+
+    fn handle_bit_set(&mut self, bit: u8, operand: u8, memory: &mut Memory) {
+        let value = self.get_operand_value(operand, memory);
+        let result = value | (1 << bit);
+        self.set_operand_value(operand, result, memory);
+    }
+
+    fn get_operand_value(&mut self, operand: u8, memory: &mut Memory) -> u8 {
+        match operand {
+            0 => self.registers.b,
+            1 => self.registers.c,
+            2 => self.registers.d,
+            3 => self.registers.e,
+            4 => self.registers.h,
+            5 => self.registers.l,
+            6 => {
+                // (HL) access: add cycles and read from memory
+                self.cycles += 4;
+                *memory.get(self.registers.get_hl() as usize).unwrap_or_else(|| panic!("Invalid HL address {:#06X}", self.registers.get_hl()))
+            }
+            7 => self.registers.a,
+            _ => unreachable!(),
+        }
+    }
+
+    fn set_operand_value(&mut self, operand: u8, value: u8, memory: &mut Memory) {
+        match operand {
+            0 => self.registers.b = value,
+            1 => self.registers.c = value,
+            2 => self.registers.d = value,
+            3 => self.registers.e = value,
+            4 => self.registers.h = value,
+            5 => self.registers.l = value,
+            6 => {
+                // (HL) access: add cycles and write to memory
+                self.cycles += 4;
+                memory.write_memory(self.registers.get_hl() as usize, value);
+            }
+            7 => self.registers.a = value,
+            _ => unreachable!(),
         }
     }
 }
