@@ -563,6 +563,15 @@ impl Cpu {
                 memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
                 false
             }
+            0x79 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD A C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a = self.registers.c;
+                false
+            }
             0xA9 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} XOR A C, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.c, self.registers.pc);
