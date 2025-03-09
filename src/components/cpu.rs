@@ -559,6 +559,24 @@ impl Cpu {
                 self.registers.l = self.registers.e;
                 false
             }
+            0x72 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] D, with HL = {:#06X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.d, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.d);
+                false
+            }
+            0x77 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] A, with HL = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.a, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
+                false
+            }
             0x78 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD A B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
@@ -568,6 +586,15 @@ impl Cpu {
                 self.registers.a = self.registers.b;
                 false
             }
+            0x79 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD A C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a = self.registers.c;
+                false
+            }
             0x7A => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD A D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
@@ -575,6 +602,15 @@ impl Cpu {
 
                 self.cycles = self.cycles.wrapping_add(4);
                 self.registers.a = self.registers.d;
+                false
+            }
+            0x7B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD A E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a = self.registers.e;
                 false
             }
             0x7C => {
@@ -593,33 +629,6 @@ impl Cpu {
 
                 self.cycles = self.cycles.wrapping_add(4);
                 self.registers.a = self.registers.l;
-                false
-            }
-            0x77 => {
-                if self.debug_instructions {
-                    println!("Opcode: {:#04X} LD [HL] A, with HL = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.a, self.registers.pc);
-                }
-
-                self.cycles = self.cycles.wrapping_add(8);
-                memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
-                false
-            }
-            0x79 => {
-                if self.debug_instructions {
-                    println!("Opcode: {:#04X} LD A C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
-                }
-
-                self.cycles = self.cycles.wrapping_add(4);
-                self.registers.a = self.registers.c;
-                false
-            }
-            0x7B => {
-                if self.debug_instructions {
-                    println!("Opcode: {:#04X} LD A E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
-                }
-
-                self.cycles = self.cycles.wrapping_add(4);
-                self.registers.a = self.registers.e;
                 false
             }
             0xA9 => {
