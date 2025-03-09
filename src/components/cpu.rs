@@ -644,6 +644,25 @@ impl Cpu {
                     false
                 }
             }
+            0xD6 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    let a = self.registers.a;
+                    self.registers.a = self.registers.a.wrapping_sub(*value);
+                    self.registers.set_z(self.registers.a == 0x00);
+                    self.registers.set_n(true);
+                    self.registers.set_h((a & 0xF) < (*value & 0xF));
+                    self.registers.set_c(a < *value);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} SUB A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, a, *value, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                }
+                false
+            }
             0xE0 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
