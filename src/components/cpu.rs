@@ -358,6 +358,15 @@ impl Cpu {
                 self.registers.a = self.registers.l;
                 false
             }
+            0x77 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [HL] A, with HL = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.a, self.registers.pc);
+                }
+                
+                self.cycles = self.cycles.wrapping_add(8);
+                memory.write_memory(self.registers.get_hl() as usize, self.registers.a);
+                false
+            }
             0xB1 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} OR C, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.c, self.registers.pc);
