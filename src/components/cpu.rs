@@ -82,6 +82,20 @@ impl Cpu {
 
                 false
             }
+            0x06 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD B imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
+                    }
+
+                    self.registers.b = *imm8;
+                } else {
+                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
+                }
+                false
+            }
             0x0D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.c;
