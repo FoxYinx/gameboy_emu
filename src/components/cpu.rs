@@ -657,6 +657,22 @@ impl Cpu {
                     false
                 }
             }
+            0xD5 => {
+                self.cycles = self.cycles.wrapping_add(16);
+                let de = self.registers.get_de();
+                let low = de as u8;
+                let high = (de >> 8) as u8;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, high);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, low);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} PUSH DE, with DE = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, de, self.registers.sp, self.registers.pc);
+                }
+
+                false
+            }
             0xD6 => {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
