@@ -599,6 +599,15 @@ impl Cpu {
                 self.registers.a = self.registers.c;
                 false
             }
+            0x7B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD A E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a = self.registers.e;
+                false
+            }
             0xA9 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} XOR A C, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.c, self.registers.pc);
