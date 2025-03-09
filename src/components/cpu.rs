@@ -72,6 +72,16 @@ impl Cpu {
                 }
                 false
             }
+            0x03 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.set_bc(self.registers.get_bc().wrapping_add(1));
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC BC, BC now is {:#06X}, at PC {:#06X}", opcode, self.registers.get_bc(), self.registers.pc);
+                }
+
+                false
+            }
             0x0D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.c;
