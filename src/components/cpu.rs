@@ -982,15 +982,19 @@ impl Cpu {
                 false
             }
             _ => {
-                panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc)
+                panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc);
             }
         }
     }
 
     fn process_prefix(&mut self, prefix: u8, memory: &mut Memory) {
+        if self.debug_instructions {
+            println!("Prefix: {:#04X}, at PC {:#06X}", prefix, self.registers.pc);
+        }
         let operand = prefix & 0x07;
         let bit = (prefix >> 3) & 0x07;
         let group = prefix >> 6;
+        self.cycles = self.cycles.wrapping_add(4);
 
         match group {
             0b00 => self.handle_rotate_shift(prefix, operand, memory),
