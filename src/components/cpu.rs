@@ -1052,14 +1052,15 @@ impl Cpu {
             }
             0xCB => {
                 self.cycles += 4;
-                if self.debug_instructions {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(prefix_opcode) = memory.get(self.registers.pc as usize) {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(prefix_opcode) = memory.get(self.registers.pc as usize) {
+                    if self.debug_instructions {
                         println!("Opcode: {:#04X} PREFIX, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
-                        self.process_prefix(*prefix_opcode, memory);
-                    } else {
-                        eprintln!("Failed to access prefix_opcode at PC {:#06X}", self.registers.pc);
                     }
+                    
+                    self.process_prefix(*prefix_opcode, memory);
+                } else {
+                    eprintln!("Failed to access prefix_opcode at PC {:#06X}", self.registers.pc);
                 }
                 false
             }
