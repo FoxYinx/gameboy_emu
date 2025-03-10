@@ -233,6 +233,20 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 false
             }
+            0x1D => {
+                self.cycles = self.cycles.wrapping_add(4);
+                let original = self.registers.e;
+                self.registers.e = self.registers.e.wrapping_sub(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC E, E now is {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.e == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((original & 0x0F) == 0x00);
+                false
+            }
             0x1F => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let old_carry = self.registers.get_c() as u8;
