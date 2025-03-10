@@ -394,32 +394,44 @@ impl Cpu {
             }
             0x27 => {
                 self.cycles = self.cycles.wrapping_add(4);
-                
                 let mut a = self.registers.a;
                 let n = self.registers.get_n();
                 let h = self.registers.get_h();
                 let c = self.registers.get_c();
 
-                let mut correction = if c || a > 0x99 { 0x60 } else { 0x00 };
-                if h || (!n && (a & 0x0F) > 0x09) {
-                    correction |= 0x06;
+                let mut correction: u8 = 0;
+
+                if n {
+                    if h || (a & 0x0F) > 0x09 {
+                        correction = correction.wrapping_sub(0x06);
+                    }
+                } else if h || (a & 0x0F) > 0x09 {
+                    correction = correction.wrapping_add(0x06);
                 }
 
-                if !n {
-                    a = a.wrapping_add(correction);
-                } else {
+                if n {
+                    if c {
+                        correction = correction.wrapping_sub(0x60);
+                    }
+                } else if c || (a > 0x99) {
+                    correction = correction.wrapping_add(0x60);
+                }
+
+                if n {
                     a = a.wrapping_sub(correction);
+                } else {
+                    a = a.wrapping_add(correction);
                 }
                 
                 self.registers.set_z(a == 0);
                 self.registers.set_h(false);
-                self.registers.set_c(correction >= 0x60);
+                self.registers.set_c(c || (correction >= 0x60));
+
                 self.registers.a = a;
 
                 if self.debug_instructions {
-                    println!("Opcode: {:#04X} DAA, A adjusted to {:#04X},at PC {:#06X}", opcode, a, self.registers.pc);
+                    println!("Opcode: {:#04X} DAA, A adjusted to {:#04X}, at PC {:#06X}", opcode, a, self.registers.pc);
                 }
-                
                 false
             }
             0x28 => {
@@ -503,7 +515,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} CPL, at PC {:#06X}", opcode, self.registers.pc);
                 }
-                
+
                 self.cycles = self.cycles.wrapping_add(4);
                 self.registers.a = !self.registers.a;
                 self.registers.set_n(true);
