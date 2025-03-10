@@ -580,6 +580,25 @@ impl Cpu {
 
                 false
             }
+            0x38 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if self.registers.get_c() {
+                    if let Some(offset) = memory.get(self.registers.pc as usize) {
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} JR C e8, with e8 = {:#04X}, at PC {:#06X}", opcode, *offset, self.registers.pc.wrapping_sub(1));
+                        }
+
+                        self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
+                        self.cycles = self.cycles.wrapping_add(4);
+                    } else {
+                        eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc);
+                    }
+                } else if self.debug_instructions {
+                    println!("Opcode: {:#04X} JR C but C is false, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
+                }
+                false
+            }
             0x3C => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.a;
