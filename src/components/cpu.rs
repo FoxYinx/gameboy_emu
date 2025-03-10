@@ -511,6 +511,20 @@ impl Cpu {
 
                 false
             }
+            0x3C => {
+                self.cycles = self.cycles.wrapping_add(4);
+                let original = self.registers.a;
+                self.registers.a = self.registers.a.wrapping_add(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC A, A now is {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((original & 0x0F) == 0x0F);
+                false
+            }
             0x3D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.a;
