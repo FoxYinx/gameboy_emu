@@ -124,6 +124,20 @@ impl Cpu {
                 }
                 false
             }
+            0x0C => {
+                self.cycles = self.cycles.wrapping_add(4);
+                let original = self.registers.c;
+                self.registers.c = self.registers.c.wrapping_add(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC C, C now is {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.c == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((original & 0x0F) == 0x0F);
+                false
+            }
             0x0D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.c;
