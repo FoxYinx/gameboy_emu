@@ -461,6 +461,26 @@ impl Cpu {
                 self.registers.set_hl(self.registers.get_hl().wrapping_sub(1));
                 false
             }
+            0x35 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original = *value;
+                    let result = value.wrapping_sub(1);
+                    memory.write_memory(self.registers.get_hl() as usize, result);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} DEC [HL], [HL] now is {:#04X}, at PC {:#06X}", opcode, result, self.registers.pc);
+                    }
+
+                    self.registers.set_z(result== 0);
+                    self.registers.set_n(true);
+                    self.registers.set_h((original & 0x0F) == 0x00);
+                } else {
+                    eprintln!("Failed to access [HL] at HL {:#06X}", self.registers.get_hl());
+                }
+                
+                false
+            }
             0x3D => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let original = self.registers.a;
@@ -743,6 +763,8 @@ impl Cpu {
                     self.registers.set_n(false);
                     self.registers.set_h(false);
                     self.registers.set_c(false);
+                } else {
+                    eprintln!("Failed to access [HL] at HL {:#06X}", self.registers.get_hl());
                 }
                 
                 false
