@@ -39,7 +39,7 @@ impl Cpu {
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
         if self.debug_registers {
-            println!("A: {:02X} F: {:02X} B: {:02X} C: {:02X} D: {:02X} E: {:02X} H: {:02X} L: {:02X} SP: {:04X} PC: 00:{:04X} ({:02X} {:02X} {:02X} {:02X})", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc, *memory.get(self.registers.pc as usize).unwrap(), memory.get(self.registers.pc as usize).unwrap().wrapping_add(1), memory.get(self.registers.pc as usize).unwrap().wrapping_add(2), memory.get(self.registers.pc as usize).unwrap().wrapping_add(3));
+            println!("A: {:02X} F: {:02X} B: {:02X} C: {:02X} D: {:02X} E: {:02X} H: {:02X} L: {:02X} SP: {:04X} PC: 00:{:04X} ({:02X} {:02X} {:02X} {:02X})", self.registers.a, self.registers.f, self.registers.b, self.registers.c, self.registers.d, self.registers.e, self.registers.h, self.registers.l, self.registers.sp, self.registers.pc, *memory.get(self.registers.pc as usize).unwrap(), memory.get(self.registers.pc.wrapping_add(1) as usize).unwrap(), memory.get(self.registers.pc.wrapping_add(2) as usize).unwrap(), memory.get(self.registers.pc.wrapping_add(3) as usize).unwrap());
         }
         
         match opcode { 
@@ -1056,8 +1056,8 @@ impl Cpu {
                     self.registers.a = self.registers.a.wrapping_add(*value);
                     self.registers.set_z(self.registers.a == 0x00);
                     self.registers.set_n(false);
-                    self.registers.set_h((a & 0x0F) + (self.registers.a & 0x0F) > 0x0F);
-                    self.registers.set_c(a as u16 + self.registers.a as u16 > 0xFF);
+                    self.registers.set_h((a & 0x0F) + (*value & 0x0F) > 0x0F);
+                    self.registers.set_c(a as u16 + *value as u16 > 0xFF);
 
                     if self.debug_instructions {
                         println!("Opcode: {:#04X} ADD A n8, with A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, a, *value, self.registers.pc.wrapping_sub(1));
