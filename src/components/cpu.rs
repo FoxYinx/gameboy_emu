@@ -478,7 +478,7 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to access [HL] at HL {:#06X}", self.registers.get_hl());
                 }
-                
+
                 false
             }
             0x3D => {
@@ -604,6 +604,15 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
+                false
+            }
+            0x6F => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.l = self.registers.a;
                 false
             }
             0x70 => {
@@ -779,7 +788,7 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to access [HL] at HL {:#06X}", self.registers.get_hl());
                 }
-                
+
                 false
             }
             0xB7 => {
