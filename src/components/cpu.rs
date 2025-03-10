@@ -369,6 +369,22 @@ impl Cpu {
                 }
                 false
             }
+            0x29 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                let hl = self.registers.get_hl();
+                let sum = hl as u32 + hl as u32;
+                let new_hl = sum as u16;
+                self.registers.set_hl(new_hl);
+                self.registers.set_n(false);
+                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_c(sum > 0xFFFF);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} ADD HL HL, with HL = {:#04X}, at PC {:#06X}", opcode, new_hl, self.registers.pc.wrapping_sub(1));
+                }
+                false
+            }
             0x2A => {
                 self.cycles = self.cycles.wrapping_add(8);
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
