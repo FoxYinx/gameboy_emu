@@ -937,6 +937,37 @@ impl Cpu {
                 }
                 false
             }
+            0xD0 => {
+                self.cycles = self.cycles.wrapping_add(8);
+                if !self.registers.get_c() {
+                    if let Some(low) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.sp as usize) {
+                            self.registers.sp = self.registers.sp.wrapping_add(1);
+                            let return_address = ((*high as u16) << 8) | *low as u16;
+                            self.cycles = self.cycles.wrapping_add(12);
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} RET NC to {:#06X}, PC was {:#06X}", opcode, return_address, self.registers.pc);
+                            }
+
+                            self.registers.pc = return_address;
+                            true
+                        } else {
+                            eprintln!("Failed to get high value of return address at PC {:#06X}", self.registers.pc);
+                            false
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of return address at PC {:#06X}", self.registers.pc);
+                        false
+                    }
+                } else {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} RET NC but C was true, at PC {:#06X}", opcode, self.registers.pc);
+                    }
+                    false
+                }
+            }
             0xD1 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
