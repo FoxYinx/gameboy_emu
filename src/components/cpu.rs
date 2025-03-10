@@ -499,6 +499,17 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x00);
                 false
             }
+            0x2F => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} CPL, at PC {:#06X}", opcode, self.registers.pc);
+                }
+                
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.a = !self.registers.a;
+                self.registers.set_n(true);
+                self.registers.set_h(true);
+                false
+            }
             0x30 => {
                 self.cycles = self.cycles.wrapping_add(8);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
