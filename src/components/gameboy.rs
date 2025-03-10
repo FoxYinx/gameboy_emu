@@ -38,7 +38,7 @@ impl Gameboy {
     }
 
     pub fn start(&mut self) {
-        for _i in 0..1_258_894 {
+        loop {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
                 self.cpu.update_ime();
