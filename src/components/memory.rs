@@ -22,6 +22,11 @@ impl Memory {
             } else {
                 self.memory[address] = value;
             }
+        } else if (0xFEA0..=0xFEFF).contains(&address) {
+            // Do nothing
+        } else if (0xC000..=0xDDFF).contains(&address) {
+            self.memory[address] = value;
+            self.memory[address + 0x2000] = value;
         } else {
             self.memory[address] = value;
         }
