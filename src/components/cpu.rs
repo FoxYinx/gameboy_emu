@@ -1226,6 +1226,11 @@ impl Cpu {
                 }
                 false
             }
+            0xE9 => {
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.pc = self.registers.get_hl();
+                true
+            }
             0xEA => {
                 self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
