@@ -16,7 +16,7 @@ impl Gameboy {
     }
 
     pub fn cartridge_to_rom(&mut self, filename: String) {
-        println!("Loading ROM: {}", filename);
+        println!("Loading ROM: {filename}");
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
         self.memory.write_cartridge(&cartridge_data);
         if let Some(header_checksum) = self.memory.get(0x014D) {
@@ -30,15 +30,15 @@ impl Gameboy {
     }
 
     pub fn toggle_debug_instructions(&mut self) {
-        self.cpu.toggle_debug_instructions()
+        self.cpu.toggle_debug_instructions();
     }
 
     pub fn toggle_debug_registers(&mut self) {
-        self.cpu.toggle_debug_registers()
+        self.cpu.toggle_debug_registers();
     }
 
     pub fn start(&mut self) {
-        for _i in 0..1258894 {
+        for _i in 0..1_258_894 {
             if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
                 let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
                 self.cpu.update_ime();

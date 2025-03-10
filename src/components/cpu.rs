@@ -1467,7 +1467,7 @@ impl Cpu {
             0x28 => ((value as i8 >> 1) as u8, value & 1), // SRA (arithmetic shift)
             0x30 => (value.rotate_left(4), 0), // SWAP
             0x38 => (value >> 1, value & 1), // SRL
-            _ => panic!("Unimplemented rotate/shift opcode: 0xCB{:#04X}", opcode),
+            _ => panic!("Unimplemented rotate/shift opcode: 0xCB{opcode:#04X}"),
         };
 
         self.set_operand_value(operand, result, memory);
