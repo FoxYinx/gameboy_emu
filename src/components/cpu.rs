@@ -593,6 +593,19 @@ impl Cpu {
                 self.registers.l = self.registers.e;
                 false
             }
+            0x6E => {
+                self.cycles = self.cycles.wrapping_add(8);
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD L [HL], with [HL] = {:#04X} & HL = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_hl(), self.registers.pc);
+                    }
+
+                    self.registers.l = *value;
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+                false
+            }
             0x70 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD [HL] B, with HL = {:#06X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.b, self.registers.pc);
