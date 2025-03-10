@@ -867,6 +867,39 @@ impl Cpu {
                 }
                 false
             }
+            0xC2 => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if !self.registers.get_z() {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(low) = memory.get(self.registers.pc as usize) {
+                        self.registers.pc = self.registers.pc.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.pc as usize) {
+                            self.cycles = self.cycles.wrapping_add(4);
+                            let address = ((*high as u16) << 8) | *low as u16;
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} JP NZ a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            }
+
+                            self.registers.pc = address;
+                            true
+                        } else {
+                            eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                            false
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                        false
+                    }
+                } else {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} JP NZ a16 but Z was true, at PC {:#06X}", opcode, self.registers.pc);
+                    }
+                    
+                    self.registers.pc = self.registers.pc.wrapping_add(2);
+                    false
+                }
+            }
             0xC3 => {
                 self.cycles = self.cycles.wrapping_add(16);
                 self.registers.pc = self.registers.pc.wrapping_add(1);
