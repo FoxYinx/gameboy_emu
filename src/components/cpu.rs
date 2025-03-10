@@ -848,6 +848,19 @@ impl Cpu {
                 self.registers.set_c(false);
                 false
             }
+            0xBB => {
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.set_z(self.registers.a == self.registers.e);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.e & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.e);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} CP A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}", opcode, self.registers.a , self.registers.e, self.registers.pc);
+                }
+
+                false
+            }
             0xC1 => {
                 self.cycles = self.cycles.wrapping_add(12);
                 if let Some(low) = memory.get(self.registers.sp as usize) {
