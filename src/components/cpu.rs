@@ -395,38 +395,24 @@ impl Cpu {
             0x27 => {
                 self.cycles = self.cycles.wrapping_add(4);
                 let mut a = self.registers.a;
-                let n = self.registers.get_n();
-                let h = self.registers.get_h();
-                let c = self.registers.get_c();
-
                 let mut correction: u8 = 0;
 
-                if n {
-                    if h || (a & 0x0F) > 0x09 {
-                        correction = correction.wrapping_sub(0x06);
-                    }
-                } else if h || (a & 0x0F) > 0x09 {
-                    correction = correction.wrapping_add(0x06);
+                if self.registers.get_h() || (!self.registers.get_n() && (a & 0x0F) > 0x09) {
+                    correction |= 0x06;
+                }
+                if self.registers.get_c() || (!self.registers.get_n() && a > 0x99) {
+                    correction |= 0x60;
+                    self.registers.set_c(true);
                 }
 
-                if n {
-                    if c {
-                        correction = correction.wrapping_sub(0x60);
-                    }
-                } else if c || (a > 0x99) {
-                    correction = correction.wrapping_add(0x60);
-                }
-
-                if n {
+                if self.registers.get_n() {
                     a = a.wrapping_sub(correction);
                 } else {
                     a = a.wrapping_add(correction);
                 }
-                
+
                 self.registers.set_z(a == 0);
                 self.registers.set_h(false);
-                self.registers.set_c(c || (correction >= 0x60));
-
                 self.registers.a = a;
 
                 if self.debug_instructions {
@@ -968,6 +954,19 @@ impl Cpu {
                 self.registers.set_n(false);
                 self.registers.set_h(false);
                 self.registers.set_c(false);
+                false
+            }
+            0xBA => {
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.set_z(self.registers.a == self.registers.d);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.d & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.d);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} CP A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}", opcode, self.registers.a , self.registers.d, self.registers.pc);
+                }
+
                 false
             }
             0xBB => {
