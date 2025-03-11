@@ -956,6 +956,32 @@ impl Cpu {
                 self.registers.set_c(false);
                 false
             }
+            0xB8 => {
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.set_z(self.registers.a == self.registers.b);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.b & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.b);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} CP A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}", opcode, self.registers.a , self.registers.b, self.registers.pc);
+                }
+
+                false
+            }
+            0xB9 => {
+                self.cycles = self.cycles.wrapping_add(4);
+                self.registers.set_z(self.registers.a == self.registers.c);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.c & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.c);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} CP A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}", opcode, self.registers.a , self.registers.c, self.registers.pc);
+                }
+
+                false
+            }
             0xBA => {
                 self.cycles = self.cycles.wrapping_add(4);
                 self.registers.set_z(self.registers.a == self.registers.d);
