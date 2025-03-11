@@ -38,6 +38,38 @@ impl Cpu {
             }
         }
     }
+
+    fn check_interrupts(&mut self,  memory: &mut Memory) {
+        /*if self.ime {
+            if let Some(ie) = memory.get(0xFFFF) {
+                if let Some(if_) = memory.get(0xFF0F) {
+                    self.cycles = self.cycles.wrapping_add(20);
+                    let pending = *ie & *if_;
+
+                    if pending != 0 {
+                        let vector = match pending.trailing_zeros() {
+                            0 => 0x40, // VBlank
+                            1 => 0x48, // LCD STAT
+                            2 => 0x50, // Timer
+                            3 => 0x58, // Serial
+                            4 => 0x60, // Joypad
+                            _ => unreachable!(),
+                        };
+
+                        let high = (self.registers.pc >> 8) as u8;
+                        let low = (self.registers.pc & 0xFF) as u8;
+                        self.registers.sp = self.registers.sp.wrapping_sub(1);
+                        memory.write_memory(self.registers.sp as usize, high);
+                        self.registers.sp = self.registers.sp.wrapping_sub(1);
+                        memory.write_memory(self.registers.sp as usize, low);
+                        self.registers.pc = vector;
+                        memory.write_memory(0xFF0F, if_ & !(1 << pending.trailing_zeros()));
+                        self.ime = false;
+                }
+            }
+            }
+        }*/
+    }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
         if self.debug_registers {

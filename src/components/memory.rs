@@ -1,11 +1,15 @@
+use crate::components::serialoutput::SerialOutput;
+
 pub struct Memory {
-    memory: [u8; 0x10000]
+    memory: [u8; 0x10000],
+    serial_output: SerialOutput
 }
 
 impl Memory {
     pub fn new() -> Self {
         Memory {
-            memory: [0; 0x10000]
+            memory: [0; 0x10000],
+            serial_output: SerialOutput::new()
         }
     }
     
@@ -17,6 +21,7 @@ impl Memory {
         if address == 0xFF02 {
             if value == 0x81 {
                 let byte = self.memory[0xFF01];
+                self.serial_output.write_byte(byte);
                 print!("{}", byte as char);
                 self.memory[address] = 0x00;
             } else {
@@ -34,5 +39,9 @@ impl Memory {
 
     pub fn write_cartridge(&mut self, cartridge_data: &[u8]) {
         self.memory[0x0000..cartridge_data.len()].copy_from_slice(cartridge_data);
+    }
+
+    pub fn get_serial_output(&self) -> &SerialOutput {
+        &self.serial_output
     }
 }
