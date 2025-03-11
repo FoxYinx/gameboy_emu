@@ -7,7 +7,7 @@ pub struct Cpu {
     cycles: u64,
     debug_instructions: bool,
     ime: bool,
-    ime_scheduled: bool
+    ime_pending: u8
 }
 
 impl Cpu {
@@ -17,8 +17,8 @@ impl Cpu {
             debug_registers: false,
             cycles: 0,
             debug_instructions: false,
-            ime: true,
-            ime_scheduled: false
+            ime: false,
+            ime_pending: 0
         }
     }
     
@@ -31,9 +31,11 @@ impl Cpu {
     }
 
     pub(crate) fn update_ime(&mut self) {
-        if self.ime_scheduled {
-            self.ime = !self.ime;
-            self.ime_scheduled = false;
+        if self.ime_pending > 0 {
+            self.ime_pending -= 1;
+            if self.ime_pending == 0 {
+                self.ime = true;
+            }
         }
     }
     
@@ -1550,8 +1552,9 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} DI, at PC {:#06X}", opcode, self.registers.pc);
                 }
-                
-                self.ime_scheduled = true;
+
+                self.ime = false;
+                self.ime_pending = 0;
                 self.cycles = self.cycles.wrapping_add(4);
                 false
             }
@@ -1569,6 +1572,25 @@ impl Cpu {
                     println!("Opcode: {:#04X} PUSH AF, with AF = {:#06X}, SP now {:#06X}, at PC {:#06X}", opcode, af, self.registers.sp, self.registers.pc);
                 }
 
+                false
+            }
+            0xF8 => {
+                self.cycles = self.cycles.wrapping_add(12);
+
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(offset) = memory.get(self.registers.pc as usize) {
+                    let offset = *offset as i8 as i16 as u16;
+                    let sp = self.registers.sp;
+                    let sum = sp.wrapping_add(offset);
+
+                    self.registers.set_hl(sum);
+                    self.registers.set_z(false);
+                    self.registers.set_n(false);
+                    self.registers.set_h((sp & 0xFFF) + (offset & 0xFFF) >= 0x1000);
+                    self.registers.set_c((sp as u32 + offset as u32) > 0xFFFF);
+                } else {
+                    eprintln!("Failed to get offset at PC = {:#06X}", self.registers.pc);
+                }
                 false
             }
             0xFA => {
@@ -1593,6 +1615,15 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc);
                 }
+                false
+            }
+            0xFB => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} EI, at PC {:#06X}", opcode, self.registers.pc);
+                }
+
+                self.ime_pending = 2;
+                self.cycles = self.cycles.wrapping_add(4);
                 false
             }
             0xFE => {
