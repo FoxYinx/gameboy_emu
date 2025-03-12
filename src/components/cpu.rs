@@ -69,7 +69,7 @@ impl Cpu {
                         memory.write_memory(0xFF0F, if_ & !(1 << pending.trailing_zeros()));
                         self.ime = false;
                     }
-                    
+
                     self.halted = false;
                     self.halt_bug = false;
                     return Some(20);
@@ -198,6 +198,20 @@ impl Cpu {
                     eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
+            }
+            0x0F => {
+                let new_carry = self.registers.a & 0x01;
+                self.registers.a = self.registers.a.rotate_right(1);
+                self.registers.set_z(false);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(new_carry != 0);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RRCA, A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+
+                (false, 4)
             }
             0x11 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
