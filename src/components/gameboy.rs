@@ -51,12 +51,15 @@ impl Gameboy {
 
     fn execute_cycle(&mut self) {
         if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
-            let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
+            let (jumped, cycles) = self.cpu.process_opcode(*opcode, &mut self.memory);
+            self.memory.update_timer(cycles);
             self.cpu.update_ime();
             if !jumped {
                 self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
             }
-            self.cpu.check_interrupts(&mut self.memory);
+            if let Some(cycles) = self.cpu.check_interrupts(&mut self.memory) {
+                self.memory.update_timer(cycles);
+            }
         } else {
             panic!("Tried to access address outside of ROM");
         }
