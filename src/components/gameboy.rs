@@ -40,28 +40,25 @@ impl Gameboy {
     pub fn start(&mut self, test: Option<u64>) {
         if let Some(iterations) = test {
             for _i in 0..iterations {
-                if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
-                    let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
-                    self.cpu.update_ime();
-                    if !jumped {
-                        self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
-                    }
-                } else {
-                    panic!("Tried to access address outside of ROM")
-                }
+                self.execute_cycle();
             }
         } else {
             loop {
-                if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
-                    let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
-                    self.cpu.update_ime();
-                    if !jumped {
-                        self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
-                    }
-                } else {
-                    panic!("Tried to access address outside of ROM")
-                }
+                self.execute_cycle();
             }
+        }
+    }
+
+    fn execute_cycle(&mut self) {
+        if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
+            let jumped = self.cpu.process_opcode(*opcode, &mut self.memory);
+            self.cpu.update_ime();
+            if !jumped {
+                self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
+            }
+            self.cpu.check_interrupts(&mut self.memory);
+        } else {
+            panic!("Tried to access address outside of ROM");
         }
     }
 }

@@ -39,12 +39,14 @@ impl Cpu {
         }
     }
 
-    fn check_interrupts(&mut self,  memory: &mut Memory) {
-        /*if self.ime {
+    pub fn check_interrupts(&mut self,  memory: &mut Memory) {
+        if self.ime {
             if let Some(ie) = memory.get(0xFFFF) {
                 if let Some(if_) = memory.get(0xFF0F) {
                     self.cycles = self.cycles.wrapping_add(20);
-                    let pending = *ie & *if_;
+                    let ie = *ie;
+                    let if_ = *if_;
+                    let pending = ie & if_;
 
                     if pending != 0 {
                         let vector = match pending.trailing_zeros() {
@@ -65,10 +67,10 @@ impl Cpu {
                         self.registers.pc = vector;
                         memory.write_memory(0xFF0F, if_ & !(1 << pending.trailing_zeros()));
                         self.ime = false;
+                    }
                 }
             }
-            }
-        }*/
+        }
     }
     
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> bool {
@@ -1241,6 +1243,39 @@ impl Cpu {
                     }
                 } else {
                     eprintln!("Failed to get low value of return address at PC {:#06X}", self.registers.pc);
+                    false
+                }
+            }
+            0xCA => {
+                self.cycles = self.cycles.wrapping_add(12);
+                if self.registers.get_z() {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(low) = memory.get(self.registers.pc as usize) {
+                        self.registers.pc = self.registers.pc.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.pc as usize) {
+                            self.cycles = self.cycles.wrapping_add(4);
+                            let address = ((*high as u16) << 8) | *low as u16;
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} JP Z a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            }
+
+                            self.registers.pc = address;
+                            true
+                        } else {
+                            eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                            false
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                        false
+                    }
+                } else {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} JP Z a16 but Z was false, at PC {:#06X}", opcode, self.registers.pc);
+                    }
+
+                    self.registers.pc = self.registers.pc.wrapping_add(2);
                     false
                 }
             }
