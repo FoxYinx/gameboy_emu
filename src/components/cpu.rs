@@ -1670,7 +1670,6 @@ impl Cpu {
         self.registers.set_z((value & mask) == 0);
         self.registers.set_n(false);
         self.registers.set_h(true);
-        // C flag is unaffected for BIT
         cycles
     }
 
@@ -1697,7 +1696,6 @@ impl Cpu {
             4 => (self.registers.h, 0),
             5 => (self.registers.l, 0),
             6 => {
-                // (HL) access: add cycles and read from memory
                 (*memory.get(self.registers.get_hl() as usize).unwrap_or_else(|| panic!("Invalid HL address {:#06X}", self.registers.get_hl())), 4)
             }
             7 => (self.registers.a, 0),
@@ -1714,7 +1712,6 @@ impl Cpu {
             4 => self.registers.h = value,
             5 => self.registers.l = value,
             6 => {
-                // (HL) access: add cycles and write to memory
                 memory.write_memory(self.registers.get_hl() as usize, value);
                 return 4;
             }
