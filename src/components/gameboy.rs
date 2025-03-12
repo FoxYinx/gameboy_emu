@@ -50,6 +50,20 @@ impl Gameboy {
     }
 
     fn execute_cycle(&mut self) {
+        if self.cpu.halted {
+            self.memory.update_timer(4);
+
+            let ie = self.memory.get(0xFFFF).copied().unwrap_or(0);
+            let if_ = self.memory.get(0xFF0F).copied().unwrap_or(0);
+            if (ie & if_) != 0 {
+                self.cpu.halted = false;
+                if self.cpu.halt_bug {
+                    self.cpu.registers.pc = self.cpu.registers.pc.wrapping_sub(1);
+                    self.cpu.halt_bug = false;
+                }
+            }
+            return;
+        }
         if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
             let (jumped, cycles) = self.cpu.process_opcode(*opcode, &mut self.memory);
             self.memory.update_timer(cycles);

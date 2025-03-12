@@ -6,7 +6,9 @@ pub struct Cpu {
     debug_registers: bool,
     debug_instructions: bool,
     ime: bool,
-    ime_pending: u8
+    ime_pending: u8,
+    pub(crate) halted: bool,
+    pub(crate) halt_bug: bool
 }
 
 impl Cpu {
@@ -16,7 +18,9 @@ impl Cpu {
             debug_registers: false,
             debug_instructions: false,
             ime: false,
-            ime_pending: 0
+            ime_pending: 0,
+            halted: false,
+            halt_bug: false
         }
     }
     
@@ -65,6 +69,9 @@ impl Cpu {
                         memory.write_memory(0xFF0F, if_ & !(1 << pending.trailing_zeros()));
                         self.ime = false;
                     }
+                    
+                    self.halted = false;
+                    self.halt_bug = false;
                     return Some(20);
                 }
             }
@@ -791,6 +798,20 @@ impl Cpu {
 
                 memory.write_memory(self.registers.get_hl() as usize, self.registers.l);
                 (false, 8)
+            }
+            0x76 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} HALT, at PC {:#06X}", opcode, self.registers.pc);
+                }
+
+                self.halted = true;
+                let ie = memory.get(0xFFFF).copied().unwrap_or(0);
+                let if_ = memory.get(0xFF0F).copied().unwrap_or(0);
+                if !self.ime && (ie & if_) != 0 {
+                    self.halt_bug = true;
+                }
+
+                (true, 4)
             }
             0x77 => {
                 if self.debug_instructions {
