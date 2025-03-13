@@ -195,6 +195,18 @@ impl Cpu {
 
                 (false, 8)
             }
+            0x0A => {
+                if let Some(value) = memory.get(self.registers.get_bc() as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD A [BC], with [BC] = {:#04X} & BC = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_bc(), self.registers.pc);
+                    }
+
+                    self.registers.a = *value;
+                } else {
+                    eprintln!("Failed to get value at BC {:#06X}", self.registers.get_bc());
+                }
+                (false, 8)
+            }
             0x0C => {
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_add(1);
@@ -344,12 +356,12 @@ impl Cpu {
             0x1A => {
                 if let Some(value) = memory.get(self.registers.get_de() as usize) {
                     if self.debug_instructions {
-                        println!("Opcode: {:#04X} LD A [DE], with [DE] = {:#04X} & DE = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_de().wrapping_add(1), self.registers.pc);
+                        println!("Opcode: {:#04X} LD A [DE], with [DE] = {:#04X} & DE = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_de(), self.registers.pc);
                     }
 
                     self.registers.a = *value;
                 } else {
-                    eprintln!("Failed to get value at [DE] {:#06X}", self.registers.get_de());
+                    eprintln!("Failed to get value at DE {:#06X}", self.registers.get_de());
                 }
                 (false, 8)
             }
