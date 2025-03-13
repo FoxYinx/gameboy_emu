@@ -2053,15 +2053,19 @@ impl Cpu {
                 if let Some(value) = memory.get(self.registers.pc as usize) {
                     let a = self.registers.a;
                     let c = self.registers.get_c() as u8;
-                    let subtrahend = value.wrapping_add(c);
-                    let result = a.wrapping_sub(subtrahend);
-
-                    self.registers.a = result;
+                    let total_sub = *value as u16 + c as u16;
+                    self.registers.a = a.wrapping_sub(*value).wrapping_sub(c);
                     
-                    self.registers.set_z(result == 0);
+                    self.registers.set_z(self.registers.a == 0);
                     self.registers.set_n(true);
-                    self.registers.set_h((a & 0x0F) < (subtrahend & 0x0F));
-                    self.registers.set_c((a as u16) < (subtrahend as u16));
+                    self.registers.set_h(((a & 0x0F) as u16) < ((*value & 0x0F) as u16 + c as u16));
+                    self.registers.set_c((a as u16) < total_sub);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} SBC A n8, A = {:#04X} & n8 = {:#04X}, at PC {:#06X}", opcode, self.registers.a, *value, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
