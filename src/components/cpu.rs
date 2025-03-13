@@ -5,7 +5,7 @@ pub struct Cpu {
     pub(crate) registers: Registers,
     debug_registers: bool,
     debug_instructions: bool,
-    ime: bool,
+    pub(crate) ime: bool,
     ime_pending: u8,
     pub(crate) halted: bool,
     pub(crate) halt_bug: bool
@@ -45,6 +45,7 @@ impl Cpu {
         if self.ime {
             if let Some(ie) = memory.get(0xFFFF) {
                 if let Some(if_) = memory.get(0xFF0F) {
+
                     let ie = *ie;
                     let if_ = *if_;
                     let pending = ie & if_;
@@ -60,7 +61,7 @@ impl Cpu {
                         };
 
                         let high = (self.registers.pc >> 8) as u8;
-                        let low = (self.registers.pc & 0xFF) as u8;
+                        let low = self.registers.pc as u8;
                         self.registers.sp = self.registers.sp.wrapping_sub(1);
                         memory.write_memory(self.registers.sp as usize, high);
                         self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -68,10 +69,9 @@ impl Cpu {
                         self.registers.pc = vector;
                         memory.write_memory(0xFF0F, if_ & !(1 << pending.trailing_zeros()));
                         self.ime = false;
+                        self.halted = false;
                     }
-
-                    self.halted = false;
-                    self.halt_bug = false;
+                    
                     return Some(20);
                 }
             }
@@ -824,8 +824,7 @@ impl Cpu {
                 if !self.ime && (ie & if_) != 0 {
                     self.halt_bug = true;
                 }
-
-                (true, 4)
+                (false, 4)
             }
             0x77 => {
                 if self.debug_instructions {

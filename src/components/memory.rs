@@ -72,10 +72,10 @@ impl Memory {
             while self.cycles_tima >= required_cycles {
                 let new_tima = self.memory[0xFF05].wrapping_add(1);
                 if new_tima == 0 {
-                    self.write_memory(0xFF05, self.memory[0xFF06]);
-                    self.write_memory(0xFF0F, self.memory[0xFF0F] | 0x04);
+                    self.memory[0xFF0F] |= 0x04;
+                    self.memory[0xFF05] = self.memory[0xFF06];
                 } else {
-                    self.write_memory(0xFF05, new_tima);
+                    self.memory[0xFF05] = new_tima;
                 }
                 self.cycles_tima -= required_cycles;
             }

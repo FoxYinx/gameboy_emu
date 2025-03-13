@@ -55,27 +55,29 @@ impl Gameboy {
 
             let ie = self.memory.get(0xFFFF).copied().unwrap_or(0);
             let if_ = self.memory.get(0xFF0F).copied().unwrap_or(0);
-            if (ie & if_) != 0 {
+            let pending = ie & if_;
+
+            if pending != 0 {
                 self.cpu.halted = false;
-                if self.cpu.halt_bug {
-                    self.cpu.registers.pc = self.cpu.registers.pc.wrapping_sub(1);
-                    self.cpu.halt_bug = false;
+                if let Some(cycles) = self.cpu.check_interrupts(&mut self.memory) {
+                    self.memory.update_timer(cycles);
                 }
             }
 
-            if let Some(interrupt_cycles) = self.cpu.check_interrupts(&mut self.memory) {
-                self.memory.update_timer(interrupt_cycles);
-            }
-            
             return;
         }
+
         if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
             let (jumped, cycles) = self.cpu.process_opcode(*opcode, &mut self.memory);
             self.memory.update_timer(cycles);
             self.cpu.update_ime();
-            if !jumped {
+
+            if self.cpu.halt_bug {
+                self.cpu.halt_bug = false;
+            } else if !jumped {
                 self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
             }
+
             if let Some(cycles) = self.cpu.check_interrupts(&mut self.memory) {
                 self.memory.update_timer(cycles);
             }
