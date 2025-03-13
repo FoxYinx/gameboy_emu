@@ -760,6 +760,19 @@ impl Cpu {
 
                 (false, 12)
             }
+            0x36 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD [HL] imm8, with HL = {:#06X} & imm8 = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), imm8, self.registers.pc.wrapping_sub(1));
+                    }
+
+                    memory.write_memory(self.registers.get_hl() as usize, *imm8);
+                } else {
+                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
+                }
+                (false, 12)
+            }
             0x38 => {
                 let mut cycles = 8;
                 self.registers.pc = self.registers.pc.wrapping_add(1);
