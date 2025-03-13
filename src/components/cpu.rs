@@ -1345,12 +1345,72 @@ impl Cpu {
                 self.registers.set_c(false);
                 (false, 4)
             }
+            0xB0 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A B, A = {:#04X}, B = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.a |= self.registers.b;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                (false, 4)
+            }
             0xB1 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} OR A C, A = {:#04X}, C = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.c, self.registers.pc);
                 }
 
                 self.registers.a |= self.registers.c;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                (false, 4)
+            }
+            0xB2 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A D, A = {:#04X}, D = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.a |= self.registers.d;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                (false, 4)
+            }
+            0xB3 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A E, A = {:#04X}, E = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.a |= self.registers.e;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                (false, 4)
+            }
+            0xB4 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A H, A = {:#04X}, H = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.a |= self.registers.h;
+                self.registers.set_z(self.registers.a == 0x00);
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                (false, 4)
+            }
+            0xB5 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} OR A L, A = {:#04X}, L = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.a |= self.registers.l;
                 self.registers.set_z(self.registers.a == 0x00);
                 self.registers.set_n(false);
                 self.registers.set_h(false);
