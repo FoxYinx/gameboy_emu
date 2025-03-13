@@ -2236,6 +2236,24 @@ impl Cpu {
 
                 (false, 16)
             }
+            0xF6 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} OR A n8, n8 = {:#04X}, at PC {:#06X}", opcode, *value, self.registers.pc);
+                    }
+
+                    self.registers.a |= *value;
+                    self.registers.set_z(self.registers.a == 0x00);
+                    self.registers.set_n(false);
+                    self.registers.set_h(false);
+                    self.registers.set_c(false);
+                } else {
+                    eprintln!("Failed to access n8 at PC {:#06X}", self.registers.pc);
+                }
+
+                (false, 8)
+            }
             0xF8 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(offset) = memory.get(self.registers.pc as usize) {
