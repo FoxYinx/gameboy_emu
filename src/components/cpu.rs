@@ -207,6 +207,14 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0x0B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC BC, with BC = {:#06X}, at PC {:#06x}", opcode, self.registers.get_bc(), self.registers.pc);
+                }
+                
+                self.registers.set_bc(self.registers.get_bc().wrapping_sub(1));
+                (false, 8)
+            }
             0x0C => {
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_add(1);
@@ -363,6 +371,14 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at DE {:#06X}", self.registers.get_de());
                 }
+                (false, 8)
+            }
+            0x1B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC DE, with DE = {:#06X}, at PC {:#06x}", opcode, self.registers.get_de(), self.registers.pc);
+                }
+
+                self.registers.set_de(self.registers.get_de().wrapping_sub(1));
                 (false, 8)
             }
             0x1C => {
@@ -590,6 +606,14 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0x2B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC HL, with HL = {:#06X}, at PC {:#06x}", opcode, self.registers.get_hl(), self.registers.pc);
+                }
+
+                self.registers.set_hl(self.registers.get_hl().wrapping_sub(1));
+                (false, 8)
+            }
             0x2C => {
                 let original = self.registers.l;
                 self.registers.l = self.registers.l.wrapping_add(1);
@@ -762,6 +786,14 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
+                (false, 8)
+            }
+            0x3B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC SP, with SP = {:#06X}, at PC {:#06x}", opcode, self.registers.sp, self.registers.pc);
+                }
+
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
                 (false, 8)
             }
             0x3C => {
