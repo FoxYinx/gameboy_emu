@@ -110,6 +110,14 @@ impl Cpu {
                 }
                 (false, 12)
             }
+            0x02 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD [BC] A, with BC = {:#06X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.get_bc(), self.registers.a, self.registers.pc);
+                }
+
+                memory.write_memory(self.registers.get_bc() as usize, self.registers.a);
+                (false, 8)
+            }
             0x03 => {
                 self.registers.set_bc(self.registers.get_bc().wrapping_add(1));
 
