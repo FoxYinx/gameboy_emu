@@ -312,6 +312,19 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x00);
                 (false, 4)
             }
+            0x1E => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    self.registers.e = *imm8;
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD E imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to read immediate value at PC {:#06X}", self.registers.pc);
+                }
+                (false, 8)
+            }
             0x1F => {
                 let old_carry = self.registers.get_c() as u8;
                 let new_carry = self.registers.a & 0x01;
@@ -523,6 +536,19 @@ impl Cpu {
                 self.registers.set_n(true);
                 self.registers.set_h((original & 0x0F) == 0x00);
                 (false, 4)
+            }
+            0x2E => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    self.registers.l = *imm8;
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD L imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to read immediate value at PC {:#06X}", self.registers.pc);
+                }
+                (false, 8)
             }
             0x2F => {
                 if self.debug_instructions {
