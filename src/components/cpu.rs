@@ -178,6 +178,23 @@ impl Cpu {
                 }
                 (false, 20)
             }
+            0x09 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                let hl = self.registers.get_hl();
+                let bc = self.registers.get_bc();
+                let sum = hl as u32 + bc as u32;
+                let new_hl = sum as u16;
+                self.registers.set_hl(new_hl);
+                self.registers.set_n(false);
+                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_c(sum > 0xFFFF);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} ADD HL BC, with HL = {:#06X} & BC = {:#06X}, at PC {:#06X}", opcode, hl, bc, self.registers.pc.wrapping_sub(1));
+                }
+
+                (false, 8)
+            }
             0x0C => {
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_add(1);
@@ -306,6 +323,23 @@ impl Cpu {
                     eprintln!("Failed to get offset for jump at PC {:#06X}", self.registers.pc)
                 }
                 (false, 12)
+            }
+            0x19 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                let hl = self.registers.get_hl();
+                let de = self.registers.get_de();
+                let sum = hl as u32 + de as u32;
+                let new_hl = sum as u16;
+                self.registers.set_hl(new_hl);
+                self.registers.set_n(false);
+                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_c(sum > 0xFFFF);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} ADD HL DE, with HL = {:#06X} & DE = {:#06X}, at PC {:#06X}", opcode, hl, de, self.registers.pc.wrapping_sub(1));
+                }
+
+                (false, 8)
             }
             0x1A => {
                 if let Some(value) = memory.get(self.registers.get_de() as usize) {
@@ -526,7 +560,7 @@ impl Cpu {
                 self.registers.set_c(sum > 0xFFFF);
 
                 if self.debug_instructions {
-                    println!("Opcode: {:#04X} ADD HL HL, with HL = {:#04X}, at PC {:#06X}", opcode, new_hl, self.registers.pc.wrapping_sub(1));
+                    println!("Opcode: {:#04X} ADD HL HL, with HL = {:#04X}, at PC {:#06X}", opcode, hl, self.registers.pc.wrapping_sub(1));
                 }
 
                 (false, 8)
@@ -687,6 +721,23 @@ impl Cpu {
                     println!("Opcode: {:#04X} JR C but C is false, at PC {:#06X}", opcode, self.registers.pc.wrapping_sub(1));
                 }
                 (false, cycles)
+            }
+            0x39 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                let hl = self.registers.get_hl();
+                let sp = self.registers.sp;
+                let sum = hl as u32 + sp as u32;
+                let new_hl = sum as u16;
+                self.registers.set_hl(new_hl);
+                self.registers.set_n(false);
+                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_c(sum > 0xFFFF);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} ADD HL SP, with HL = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, hl, sp, self.registers.pc.wrapping_sub(1));
+                }
+
+                (false, 8)
             }
             0x3C => {
                 let original = self.registers.a;
