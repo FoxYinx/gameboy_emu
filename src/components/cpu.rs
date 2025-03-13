@@ -166,7 +166,7 @@ impl Cpu {
                         let address = ((*high as u16) << 8) | (*low as u16);
                         memory.write_memory(address as usize, self.registers.sp as u8);
                         memory.write_memory((address + 1) as usize, (self.registers.sp >> 8) as u8);
-                        
+
                         if self.debug_instructions {
                             println!("Opcode: {:#04X} LD [a16] SP, with a16 = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, address, self.registers.sp, self.registers.pc.wrapping_sub(2));
                         }
@@ -211,7 +211,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} DEC BC, with BC = {:#06X}, at PC {:#06x}", opcode, self.registers.get_bc(), self.registers.pc);
                 }
-                
+
                 self.registers.set_bc(self.registers.get_bc().wrapping_sub(1));
                 (false, 8)
             }
@@ -2085,7 +2085,7 @@ impl Cpu {
                     let offset = *e8 as i8 as i16;
                     let original_sp = self.registers.sp;
                     self.registers.sp = original_sp.wrapping_add_signed(offset);
-                    
+
                     self.registers.set_z(false);
                     self.registers.set_n(false);
                     let sp_lo = (original_sp & 0xFF) as u8;
@@ -2205,15 +2205,15 @@ impl Cpu {
             0xF8 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(offset) = memory.get(self.registers.pc as usize) {
-                    let offset = *offset as i8 as i16 as u16;
                     let sp = self.registers.sp;
-                    let sum = sp.wrapping_add(offset);
+                    let offset = *offset as i8 as i16 as u16;
+                    let result = sp.wrapping_add(offset);
 
-                    self.registers.set_hl(sum);
                     self.registers.set_z(false);
                     self.registers.set_n(false);
-                    self.registers.set_h((sp & 0xFFF) + (offset & 0xFFF) >= 0x1000);
-                    self.registers.set_c((sp as u32 + offset as u32) > 0xFFFF);
+                    self.registers.set_h(((sp & 0x0F) + (offset & 0x0F)) > 0x0F);
+                    self.registers.set_c(((sp & 0xFF) + (offset & 0xFF)) > 0xFF);
+                    self.registers.set_hl(result);
                     
                     if self.debug_instructions {
                         println!("Opcode: {:#04X} LD HL, SP + e8, with SP = {:#06X} & e8 = {:#06X}, at PC {:#06X}", opcode, sp, offset, self.registers.pc);
@@ -2227,7 +2227,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD SP HL, with HL = {:#06X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.pc);
                 }
-                
+
                 self.registers.sp = self.registers.get_hl();
                 (false, 8)
             }
