@@ -1950,6 +1950,14 @@ impl Cpu {
                 }
                 (false, 12)
             }
+            0xF9 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD SP HL, with HL = {:#06X}, at PC {:#06X}", opcode, self.registers.get_hl(), self.registers.pc);
+                }
+                
+                self.registers.sp = self.registers.get_hl();
+                (false, 8)
+            }
             0xFA => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
