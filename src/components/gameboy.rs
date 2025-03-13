@@ -59,9 +59,6 @@ impl Gameboy {
 
             if pending != 0 {
                 self.cpu.halted = false;
-                if let Some(cycles) = self.cpu.check_interrupts(&mut self.memory) {
-                    self.memory.update_timer(cycles);
-                }
             }
 
             return;
@@ -72,9 +69,7 @@ impl Gameboy {
             self.memory.update_timer(cycles);
             self.cpu.update_ime();
 
-            if self.cpu.halt_bug {
-                self.cpu.halt_bug = false;
-            } else if !jumped {
+            if !jumped {
                 self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
             }
 

@@ -7,8 +7,7 @@ pub struct Cpu {
     debug_instructions: bool,
     pub(crate) ime: bool,
     ime_pending: u8,
-    pub(crate) halted: bool,
-    pub(crate) halt_bug: bool
+    pub(crate) halted: bool
 }
 
 impl Cpu {
@@ -19,8 +18,7 @@ impl Cpu {
             debug_instructions: false,
             ime: false,
             ime_pending: 0,
-            halted: false,
-            halt_bug: false
+            halted: false
         }
     }
     
@@ -819,11 +817,6 @@ impl Cpu {
                 }
 
                 self.halted = true;
-                let ie = memory.get(0xFFFF).copied().unwrap_or(0);
-                let if_ = memory.get(0xFF0F).copied().unwrap_or(0);
-                if !self.ime && (ie & if_) != 0 {
-                    self.halt_bug = true;
-                }
                 (false, 4)
             }
             0x77 => {
