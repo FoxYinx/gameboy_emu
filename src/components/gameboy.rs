@@ -56,7 +56,6 @@ impl Gameboy {
             let ie = self.memory.get(0xFFFF).copied().unwrap_or(0);
             let if_ = self.memory.get(0xFF0F).copied().unwrap_or(0);
             let pending = ie & if_;
-
             if pending != 0 {
                 self.cpu.halted = false;
             }

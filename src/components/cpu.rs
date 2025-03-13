@@ -158,6 +158,26 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0x08 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(low) = memory.get(self.registers.pc as usize) {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(high) = memory.get(self.registers.pc as usize) {
+                        let address = ((*high as u16) << 8) | (*low as u16);
+                        memory.write_memory(address as usize, self.registers.sp as u8);
+                        memory.write_memory((address + 1) as usize, (self.registers.sp >> 8) as u8);
+                        
+                        if self.debug_instructions {
+                            println!("Opcode: {:#04X} LD [a16] SP, with a16 = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, address, self.registers.sp, self.registers.pc.wrapping_sub(2));
+                        }
+                    } else {
+                        eprintln!("Failed to get high value of a16 at PC {:#06X}", self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get low value of a16 at PC {:#06X}", self.registers.pc);
+                }
+                (false, 20)
+            }
             0x0C => {
                 let original = self.registers.c;
                 self.registers.c = self.registers.c.wrapping_add(1);
