@@ -339,6 +339,19 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x00);
                 (false, 4)
             }
+            0x16 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(imm8) = memory.get(self.registers.pc as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD D imm8, with imm8 = {:#04X}, at PC {:#06X}", opcode, imm8, self.registers.pc.wrapping_sub(1));
+                    }
+
+                    self.registers.d = *imm8;
+                } else {
+                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
+                }
+                (false, 8)
+            }
             0x18 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(offset) = memory.get(self.registers.pc as usize) {
