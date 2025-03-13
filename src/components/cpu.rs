@@ -281,6 +281,19 @@ impl Cpu {
                 self.registers.set_h((original & 0x0F) == 0x0F);
                 (false, 4)
             }
+            0x15 => {
+                let original = self.registers.d;
+                self.registers.d = self.registers.d.wrapping_sub(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} DEC D, D now is {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.set_z(self.registers.d == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((original & 0x0F) == 0x00);
+                (false, 4)
+            }
             0x18 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(offset) = memory.get(self.registers.pc as usize) {
