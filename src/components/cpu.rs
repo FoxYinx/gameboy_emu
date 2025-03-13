@@ -2048,6 +2048,23 @@ impl Cpu {
                     (false, 8)
                 }
             }
+            0xDE => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(value) = memory.get(self.registers.pc as usize) {
+                    let a = self.registers.a;
+                    let c = self.registers.get_c() as u8;
+                    let subtrahend = value.wrapping_add(c);
+                    let result = a.wrapping_sub(subtrahend);
+
+                    self.registers.a = result;
+                    
+                    self.registers.set_z(result == 0);
+                    self.registers.set_n(true);
+                    self.registers.set_h((a & 0x0F) < (subtrahend & 0x0F));
+                    self.registers.set_c((a as u16) < (subtrahend as u16));
+                }
+                (false, 8)
+            }
             0xE0 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
