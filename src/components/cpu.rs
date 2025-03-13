@@ -2079,6 +2079,29 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0xE8 => {
+                self.registers.pc = self.registers.pc.wrapping_add(1);
+                if let Some(e8) = memory.get(self.registers.pc as usize) {
+                    let offset = *e8 as i8 as i16;
+                    let original_sp = self.registers.sp;
+                    self.registers.sp = original_sp.wrapping_add_signed(offset);
+                    
+                    self.registers.set_z(false);
+                    self.registers.set_n(false);
+                    let sp_lo = (original_sp & 0xFF) as u8;
+                    let e8_u8 = *e8;
+                    let sum = sp_lo as u16 + e8_u8 as u16;
+                    self.registers.set_h((sp_lo & 0x0F) + (e8_u8 & 0x0F) > 0x0F);
+                    self.registers.set_c(sum > 0xFF);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} ADD SP e8, e8 = {:#04X}, at PC {:#06X}", opcode, e8, self.registers.pc.wrapping_sub(1));
+                    }
+                } else {
+                    eprintln!("Failed to get e8 at PC {:#06X}", self.registers.pc);
+                }
+                (false, 16)
+            }
             0xE9 => {
                 self.registers.pc = self.registers.get_hl();
                 (true, 4)
