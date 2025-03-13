@@ -628,6 +628,15 @@ impl Cpu {
                 self.registers.set_hl(self.registers.get_hl().wrapping_sub(1));
                 (false, 8)
             }
+            0x33 => {
+                self.registers.sp = self.registers.sp.wrapping_add(1);
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} INC SP, SP now is {:#06X}, at PC {:#06X}", opcode, self.registers.sp, self.registers.pc);
+                }
+
+                (false, 8)
+            }
             0x35 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     let original = *value;
