@@ -62,6 +62,11 @@ impl Gameboy {
                     self.cpu.halt_bug = false;
                 }
             }
+
+            if let Some(interrupt_cycles) = self.cpu.check_interrupts(&mut self.memory) {
+                self.memory.update_timer(interrupt_cycles);
+            }
+            
             return;
         }
         if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
