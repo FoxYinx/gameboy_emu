@@ -685,6 +685,53 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0x40 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+                
+                (false, 4)
+            }
+            0x41 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.b = self.registers.c;
+                (false, 4)
+            }
+            0x42 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.b = self.registers.d;
+                (false, 4)
+            }
+            0x43 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.b = self.registers.e;
+                (false, 4)
+            }
+            0x44 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.b = self.registers.h;
+                (false, 4)
+            }
+            0x45 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD B L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.b = self.registers.l;
+                (false, 4)
+            }
             0x46 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     if self.debug_instructions {
@@ -703,6 +750,53 @@ impl Cpu {
                 }
 
                 self.registers.b = self.registers.a;
+                (false, 4)
+            }
+            0x48 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.c = self.registers.b;
+                (false, 4)
+            }
+            0x49 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+                
+                (false, 4)
+            }
+            0x4A => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.c = self.registers.d;
+                (false, 4)
+            }
+            0x4B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.c = self.registers.e;
+                (false, 4)
+            }
+            0x4C => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.c = self.registers.h;
+                (false, 4)
+            }
+            0x4D => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD C L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.c = self.registers.l;
                 (false, 4)
             }
             0x4E => {
@@ -725,6 +819,53 @@ impl Cpu {
                 self.registers.c = self.registers.a;
                 (false, 4)
             }
+            0x50 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.d = self.registers.b;
+                (false, 4)
+            }
+            0x51 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.d = self.registers.c;
+                (false, 4)
+            }
+            0x52 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+                
+                (false, 4)
+            }
+            0x53 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.d = self.registers.e;
+                (false, 4)
+            }
+            0x54 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.d = self.registers.h;
+                (false, 4)
+            }
+            0x55 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD D L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.d = self.registers.l;
+                (false, 4)
+            }
             0x56 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     if self.debug_instructions {
@@ -745,6 +886,65 @@ impl Cpu {
                 self.registers.d = self.registers.a;
                 (false, 4)
             }
+            0x58 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.e = self.registers.b;
+                (false, 4)
+            }
+            0x59 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.e = self.registers.c;
+                (false, 4)
+            }
+            0x5A => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.e = self.registers.d;
+                (false, 4)
+            }
+            0x5B => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+                
+                (false, 4)
+            }
+            0x5C => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.e = self.registers.h;
+                (false, 4)
+            }
+            0x5D => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD E L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.e = self.registers.l;
+                (false, 4)
+            }
+            0x5E => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD E [HL], with [HL] = {:#04X} & HL = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_hl(), self.registers.pc);
+                    }
+
+                    self.registers.e = *value;
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+                (false, 8)
+            }
             0x5F => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD E A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
@@ -752,6 +952,65 @@ impl Cpu {
 
                 self.registers.e = self.registers.a;
                 (false, 4)
+            }
+            0x60 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.h = self.registers.b;
+                (false, 4)
+            }
+            0x61 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.h = self.registers.c;
+                (false, 4)
+            }
+            0x62 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.h = self.registers.d;
+                (false, 4)
+            }
+            0x63 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
+                }
+
+                self.registers.h = self.registers.e;
+                (false, 4)
+            }
+            0x64 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+                
+                (false, 4)
+            }
+            0x65 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD H L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+
+                self.registers.h = self.registers.l;
+                (false, 4)
+            }
+            0x66 => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LD H [HL], with [HL] = {:#04X} & HL = {:#06X}, at PC {:#06X}", opcode, *value, self.registers.get_hl(), self.registers.pc);
+                    }
+
+                    self.registers.h = *value;
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+                (false, 8)
             }
             0x67 => {
                 if self.debug_instructions {
@@ -761,12 +1020,51 @@ impl Cpu {
                 self.registers.h = self.registers.a;
                 (false, 4)
             }
+            0x68 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L B, with B = {:#04X}, at PC {:#06X}", opcode, self.registers.b, self.registers.pc);
+                }
+
+                self.registers.l = self.registers.b;
+                (false, 4)
+            }
+            0x69 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L C, with C = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.pc);
+                }
+
+                self.registers.l = self.registers.c;
+                (false, 4)
+            }
+            0x6A => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L D, with D = {:#04X}, at PC {:#06X}", opcode, self.registers.d, self.registers.pc);
+                }
+
+                self.registers.l = self.registers.d;
+                (false, 4)
+            }
             0x6B => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} LD L E, with E = {:#04X}, at PC {:#06X}", opcode, self.registers.e, self.registers.pc);
                 }
 
                 self.registers.l = self.registers.e;
+                (false, 4)
+            }
+            0x6C => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L H, with H = {:#04X}, at PC {:#06X}", opcode, self.registers.h, self.registers.pc);
+                }
+
+                self.registers.l = self.registers.h;
+                (false, 4)
+            }
+            0x6D => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD L L, with L = {:#04X}, at PC {:#06X}", opcode, self.registers.l, self.registers.pc);
+                }
+                
                 (false, 4)
             }
             0x6E => {
@@ -912,6 +1210,13 @@ impl Cpu {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
                 (false, 8)
+            }
+            0x7F => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LD A A, with A = {:#04X}, at PC {:#06X}", opcode, self.registers.a, self.registers.pc);
+                }
+                
+                (false, 4)
             }
             0xA9 => {
                 if self.debug_instructions {
