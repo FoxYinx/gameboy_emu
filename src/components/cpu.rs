@@ -186,7 +186,7 @@ impl Cpu {
                 let new_hl = sum as u16;
                 self.registers.set_hl(new_hl);
                 self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_h((hl & 0x0FFF) + (bc & 0x0FFF) > 0x0FFF);
                 self.registers.set_c(sum > 0xFFFF);
 
                 if self.debug_instructions {
@@ -352,7 +352,7 @@ impl Cpu {
                 let new_hl = sum as u16;
                 self.registers.set_hl(new_hl);
                 self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_h((hl & 0x0FFF) + (de & 0x0FFF) > 0x0FFF);
                 self.registers.set_c(sum > 0xFFFF);
 
                 if self.debug_instructions {
@@ -766,7 +766,7 @@ impl Cpu {
                 let new_hl = sum as u16;
                 self.registers.set_hl(new_hl);
                 self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
+                self.registers.set_h((hl & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF);
                 self.registers.set_c(sum > 0xFFFF);
 
                 if self.debug_instructions {
