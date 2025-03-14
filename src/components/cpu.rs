@@ -1819,7 +1819,7 @@ impl Cpu {
                 (false, 8)
             }
             0xC7 => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2021,7 +2021,7 @@ impl Cpu {
                 (false, 8)
             }
             0xCF => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2187,7 +2187,7 @@ impl Cpu {
                 (false, 8)
             }
             0xD7 => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2349,7 +2349,7 @@ impl Cpu {
                 (false, 8)
             }
             0xDF => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2436,7 +2436,7 @@ impl Cpu {
                 (false, 8)
             }
             0xE7 => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2524,7 +2524,7 @@ impl Cpu {
                 (false, 8)
             }
             0xEF => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2621,7 +2621,7 @@ impl Cpu {
                 (false, 8)
             }
             0xF7 => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -2720,7 +2720,7 @@ impl Cpu {
                 (false, 8)
             }
             0xFF => {
-                let return_address = self.registers.pc;
+                let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
