@@ -1914,6 +1914,42 @@ impl Cpu {
                 }
                 (false, cycles)
             }
+            0xCC => {
+                if self.registers.get_z() {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(low) = memory.get(self.registers.pc as usize) {
+                        self.registers.pc = self.registers.pc.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.pc as usize) {
+                            let address = ((*high as u16) << 8) | *low as u16;
+                            let return_address = self.registers.pc.wrapping_add(1);
+                            self.registers.sp = self.registers.sp.wrapping_sub(1);
+                            memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                            self.registers.sp = self.registers.sp.wrapping_sub(1);
+                            memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} CALL Z a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            }
+
+                            self.registers.pc = address;
+                            (true, 24)
+                        } else {
+                            eprintln!("Failed to get high value of call address at PC {:#06X}", self.registers.pc);
+                            (false, 24)
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of call address at PC {:#06X}", self.registers.pc);
+                        (false, 24)
+                    }
+                } else {
+                    self.registers.pc = self.registers.pc.wrapping_add(2);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} CALL Z a16 but Z was false", opcode);
+                    }
+                    (false, 12)
+                }
+            }
             0xCD => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
@@ -2175,6 +2211,42 @@ impl Cpu {
                     }
 
                     self.registers.pc = self.registers.pc.wrapping_add(2);
+                    (false, 12)
+                }
+            }
+            0xDC => {
+                if self.registers.get_c() {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(low) = memory.get(self.registers.pc as usize) {
+                        self.registers.pc = self.registers.pc.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.pc as usize) {
+                            let address = ((*high as u16) << 8) | *low as u16;
+                            let return_address = self.registers.pc.wrapping_add(1);
+                            self.registers.sp = self.registers.sp.wrapping_sub(1);
+                            memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                            self.registers.sp = self.registers.sp.wrapping_sub(1);
+                            memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} CALL C a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            }
+
+                            self.registers.pc = address;
+                            (true, 24)
+                        } else {
+                            eprintln!("Failed to get high value of call address at PC {:#06X}", self.registers.pc);
+                            (false, 24)
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of call address at PC {:#06X}", self.registers.pc);
+                        (false, 24)
+                    }
+                } else {
+                    self.registers.pc = self.registers.pc.wrapping_add(2);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} CALL C a16 but C was false", opcode);
+                    }
                     (false, 12)
                 }
             }
