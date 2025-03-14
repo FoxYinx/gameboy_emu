@@ -741,6 +741,24 @@ impl Cpu {
 
                 (false, 8)
             }
+            0x34 => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let result = value.wrapping_add(1);
+
+                    self.registers.set_z(result == 0);
+                    self.registers.set_n(false);
+                    self.registers.set_h((*value & 0x0F) == 0x0F);
+
+                    memory.write_memory(self.registers.get_hl() as usize, result);
+
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} INC [HL], with HL = {:#06X} & [HL] = {:#04X}, at PC {:#06X}", opcode, self.registers.get_hl(), result, self.registers.pc);
+                    }
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+                (false, 12)
+            }
             0x35 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     let original = *value;
