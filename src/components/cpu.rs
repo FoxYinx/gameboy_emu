@@ -2425,7 +2425,7 @@ impl Cpu {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
                 
-                (false, 4)
+                (false, 8)
             }
             0x8F => {
                 let carry = self.registers.get_c() as u8;
@@ -2444,6 +2444,161 @@ impl Cpu {
                         opcode,
                         self.registers.a,
                         carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA0 => {
+                self.registers.a &= self.registers.b;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.b,
+                        self.registers.pc
+                    );
+                }
+                
+                (false, 4)
+            }
+            0xA1 => {
+                self.registers.a &= self.registers.c;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.c,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA2 => {
+                self.registers.a &= self.registers.d;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.d,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA3 => {
+                self.registers.a &= self.registers.e;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.e,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA4 => {
+                self.registers.a &= self.registers.h;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.h,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA5 => {
+                self.registers.a &= self.registers.l;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.l,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xA6 => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    self.registers.a &= *value;
+                    self.registers.set_z(self.registers.a == 0);
+                    self.registers.set_n(false);
+                    self.registers.set_h(true);
+                    self.registers.set_c(false);
+
+                    if self.debug_instructions {
+                        println!(
+                            "Opcode: {:#04X} AND A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
+                            opcode,
+                            self.registers.a,
+                            *value,
+                            self.registers.pc
+                        );
+                    }
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+
+                (false, 8)
+            }
+            0xA7 => {
+                self.registers.a &= self.registers.a;
+                self.registers.set_z(self.registers.a == 0);
+                self.registers.set_n(false);
+                self.registers.set_h(true);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} AND A A, with A = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
                         self.registers.pc
                     );
                 }
