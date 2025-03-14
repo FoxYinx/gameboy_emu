@@ -2397,6 +2397,15 @@ impl Cpu {
                 }
                 (false, 12)
             }
+            0xE2 => {
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} LDH [C] A, with C = {:#04X} & A = {:#04X}, at PC {:#06X}", opcode, self.registers.c, self.registers.a, self.registers.pc);
+                }
+
+                let address = 0xFF00 | self.registers.c as u16;
+                memory.write_memory(address as usize, self.registers.a);
+                (false, 8)
+            }
             0xE3 => {
                 panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
             }
@@ -2586,7 +2595,7 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at address = {:#06X}", address);
                 }
-                
+
                 (false, 8)
             }
             0xF3 => {
