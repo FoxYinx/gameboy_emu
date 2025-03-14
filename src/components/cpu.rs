@@ -1312,6 +1312,19 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0x3F => {
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} CCF, at PC {:#06X}",
+                        opcode, self.registers.pc
+                    );
+                }
+
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(!self.registers.get_c());
+                (false, 4)
+            }
             0x40 => {
                 if self.debug_instructions {
                     println!(
