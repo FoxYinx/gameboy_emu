@@ -2439,7 +2439,7 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-                
+
                 (false, 8)
             }
             0x8F => {
@@ -2484,7 +2484,7 @@ impl Cpu {
                         self.registers.pc
                     );
                 }
-                
+
                 (false, 4)
             }
             0x91 => {
@@ -2634,6 +2634,200 @@ impl Cpu {
 
                 (false, 4)
             }
+            0x98 => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.b).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.b & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.b as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A B, with A = {:#04X} & B = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.b,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x99 => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.c).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.c & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.c as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A C, with A = {:#04X} & C = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.c,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x9A => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.d).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.d & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.d as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A D, with A = {:#04X} & D = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.d,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x9B => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.e).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.e & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.e as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A E, with A = {:#04X} & BE= {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.e,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x9C => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.h).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.h & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.h as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A H, with A = {:#04X} & H = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.h,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x9D => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = self.registers.a.wrapping_sub(self.registers.l).wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < ((self.registers.l & 0x0F) + carry));
+                self.registers.set_c((self.registers.a as u16) < (self.registers.l as u16 + carry as u16));
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A L, with A = {:#04X} & L = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.l,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x9E => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original_a = self.registers.a;
+                    let carry = self.registers.get_c() as u8;
+                    let result = self.registers.a.wrapping_sub(*value).wrapping_sub(carry);
+
+                    self.registers.set_z(result == 0);
+                    self.registers.set_n(true);
+                    self.registers.set_h((self.registers.a & 0x0F) < ((*value & 0x0F) + carry));
+                    self.registers.set_c((self.registers.a as u16) < (*value as u16 + carry as u16));
+                    self.registers.a = result;
+
+                    if self.debug_instructions {
+                        println!(
+                            "Opcode: {:#04X} SBC A [HL], with A = {:#04X} & [HL] = {:#04X} & Ca = {}, at PC {:#06X}",
+                            opcode,
+                            original_a,
+                            *value,
+                            carry,
+                            self.registers.pc
+                        );
+                    }
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+
+                (false, 8)
+            }
+            0x9F => {
+                let original_a = self.registers.a;
+                let carry = self.registers.get_c() as u8;
+                let result = 0u8.wrapping_sub(carry);
+
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h(carry > 0);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SBC A A, with A = {:#04X} & Ca = {}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        carry,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
             0xA0 => {
                 let original_a = self.registers.a;
                 self.registers.a &= self.registers.b;
@@ -2651,7 +2845,7 @@ impl Cpu {
                         self.registers.pc
                     );
                 }
-                
+
                 (false, 4)
             }
             0xA1 => {
