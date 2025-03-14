@@ -172,4 +172,37 @@ mod tests {
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
+
+    #[test]
+    fn rom_09_op_r_r() {
+        let mut gameboy = Gameboy::new();
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/09-op r,r.gb",
+        ));
+        gameboy.start(Some(4_500_000));
+        let output = gameboy.memory.get_serial_output().get_output();
+        assert!(output.contains("Passed"), "Test failed. Output: {}", output);
+    }
+
+    #[test]
+    fn rom_10_bit_ops() {
+        let mut gameboy = Gameboy::new();
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/10-bit ops.gb",
+        ));
+        gameboy.start(Some(7_000_000));
+        let output = gameboy.memory.get_serial_output().get_output();
+        assert!(output.contains("Passed"), "Test failed. Output: {}", output);
+    }
+    
+    #[test]
+    fn rom_11_op_a_hl() {
+        let mut gameboy = Gameboy::new();
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/11-op a,(hl).gb",
+        ));
+        gameboy.start(Some(7_500_000));
+        let output = gameboy.memory.get_serial_output().get_output();
+        assert!(output.contains("Passed"), "Test failed. Output: {}", output);
+    }
 }

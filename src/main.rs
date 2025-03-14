@@ -12,7 +12,7 @@ fn main() {
     //gameboy.toggle_debug_instructions();
     //gameboy.toggle_debug_registers();
     gameboy.cartridge_to_rom(String::from(
-        "resources/roms/cpu_instrs/individual/09-op r,r.gb",
+        "resources/roms/cpu_instrs/individual/11-op a,(hl).gb",
     ));
     gameboy.start(None);
 

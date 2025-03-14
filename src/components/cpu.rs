@@ -4915,12 +4915,6 @@ impl Cpu {
 
                 (true, 16)
             }
-            _ => {
-                panic!(
-                    "Unimplemented opcode: {:#04X}, at PC {:#06X}",
-                    opcode, self.registers.pc
-                );
-            }
         }
     }
 
