@@ -4,14 +4,14 @@ use crate::io;
 
 pub struct Gameboy {
     cpu: Cpu,
-    memory: Memory
+    memory: Memory,
 }
 
 impl Gameboy {
     pub fn new() -> Self {
         Gameboy {
             cpu: Cpu::new(),
-            memory: Memory::new()
+            memory: Memory::new(),
         }
     }
 
@@ -88,7 +88,9 @@ mod tests {
     #[test]
     fn rom_01_special() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/01-special.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/01-special.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -97,16 +99,20 @@ mod tests {
     #[test]
     fn rom_02_interrupts() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/02-interrupts.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/02-interrupts.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
-    
+
     #[test]
     fn rom_03_op_sp_hl() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/03-op sp,hl.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/03-op sp,hl.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -115,7 +121,9 @@ mod tests {
     #[test]
     fn rom_04_op_r_imm() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/04-op r,imm.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/04-op r,imm.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -124,7 +132,9 @@ mod tests {
     #[test]
     fn rom_05_op_rp() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/05-op rp.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/05-op rp.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -133,7 +143,9 @@ mod tests {
     #[test]
     fn rom_06_ld_r_r() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/06-ld r,r.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/06-ld r,r.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -142,7 +154,9 @@ mod tests {
     #[test]
     fn rom_07_jr_jp_call_ret_rst() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
@@ -151,7 +165,9 @@ mod tests {
     #[test]
     fn rom_08_misc() {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/08-misc instrs.gb"));
+        gameboy.cartridge_to_rom(String::from(
+            "resources/roms/cpu_instrs/individual/08-misc instrs.gb",
+        ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);

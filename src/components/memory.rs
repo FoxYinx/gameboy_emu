@@ -4,7 +4,7 @@ pub struct Memory {
     memory: [u8; 0x10000],
     serial_output: SerialOutput,
     cycles_div: u64,
-    cycles_tima: u64
+    cycles_tima: u64,
 }
 
 impl Memory {
@@ -13,10 +13,10 @@ impl Memory {
             memory: [0; 0x10000],
             serial_output: SerialOutput::new(),
             cycles_div: 0,
-            cycles_tima: 0
+            cycles_tima: 0,
         }
     }
-    
+
     pub fn get(&self, index: usize) -> Option<&u8> {
         self.memory.get(index)
     }
@@ -53,21 +53,21 @@ impl Memory {
 
     pub fn update_timer(&mut self, cycles: u64) {
         self.cycles_div += cycles;
-        
+
         while self.cycles_div >= 256 {
             self.memory[0xFF04] = self.memory[0xFF04].wrapping_add(1);
             self.cycles_div -= 256;
         }
-        
+
         if self.tac_enabled() {
             let required_cycles = match self.get_tac_select() {
                 0 => 1024,
                 1 => 16,
                 2 => 64,
                 3 => 256,
-                _ => unreachable!()
+                _ => unreachable!(),
             };
-            
+
             self.cycles_tima += cycles;
             while self.cycles_tima >= required_cycles {
                 let new_tima = self.memory[0xFF05].wrapping_add(1);

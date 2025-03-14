@@ -8,7 +8,7 @@ pub struct Registers {
     pub(crate) h: u8,
     pub(crate) l: u8,
     pub(crate) sp: u16,
-    pub(crate) pc: u16
+    pub(crate) pc: u16,
 }
 
 impl Registers {
@@ -26,39 +26,39 @@ impl Registers {
             pc: 0x0100,
         }
     }
-    
+
     pub fn get_af(&self) -> u16 {
         (self.a as u16) << 8 | self.f as u16
     }
-    
+
     pub fn get_bc(&self) -> u16 {
         (self.b as u16) << 8 | self.c as u16
     }
-    
+
     pub fn get_de(&self) -> u16 {
         (self.d as u16) << 8 | self.e as u16
     }
-    
+
     pub fn get_hl(&self) -> u16 {
         (self.h as u16) << 8 | self.l as u16
     }
-    
+
     pub fn get_z(&self) -> bool {
         self.f & 0b1000_0000 != 0
     }
-    
+
     pub fn get_n(&self) -> bool {
         self.f & 0b0100_0000 != 0
     }
-    
+
     pub fn get_h(&self) -> bool {
         self.f & 0b0010_0000 != 0
     }
-    
+
     pub fn get_c(&self) -> bool {
         self.f & 0b0001_0000 != 0
     }
-    
+
     pub fn set_af(&mut self, val: u16) {
         self.a = (val >> 8) as u8;
         self.f = (val & 0x00F0) as u8;
@@ -78,7 +78,7 @@ impl Registers {
         self.h = (val >> 8) as u8;
         self.l = val as u8;
     }
-    
+
     pub fn set_z(&mut self, toggle: bool) {
         if toggle {
             self.f |= 0b1000_0000;

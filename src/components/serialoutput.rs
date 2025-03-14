@@ -1,12 +1,10 @@
 pub struct SerialOutput {
-    buffer: Vec<u8>
+    buffer: Vec<u8>,
 }
 
 impl SerialOutput {
     pub fn new() -> Self {
-        SerialOutput {
-            buffer: Vec::new()
-        }
+        SerialOutput { buffer: Vec::new() }
     }
 
     pub fn write_byte(&mut self, byte: u8) {

@@ -1,17 +1,19 @@
 mod components;
-mod utils;
 mod io;
+mod utils;
 
-use std::time::Instant;
 use components::gameboy::Gameboy;
+use std::time::Instant;
 
 fn main() {
     let start = Instant::now();
-    
+
     let mut gameboy = Gameboy::new();
     //gameboy.toggle_debug_instructions();
     //gameboy.toggle_debug_registers();
-    gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/09-op r,r.gb"));
+    gameboy.cartridge_to_rom(String::from(
+        "resources/roms/cpu_instrs/individual/09-op r,r.gb",
+    ));
     gameboy.start(None);
 
     let end = Instant::now();

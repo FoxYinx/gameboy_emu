@@ -1,5 +1,5 @@
 mod cpu;
-mod registers;
 pub mod gameboy;
 mod memory;
+mod registers;
 mod serialoutput;
