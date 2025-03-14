@@ -397,6 +397,12 @@ impl Cpu {
                 (false, 4)
             }
             0x10 => {
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} STOP, at PC {:#06X}",
+                        opcode, self.registers.pc
+                    );
+                }
                 panic!("STOP");
             }
             0x11 => {
