@@ -2093,6 +2093,7 @@ impl Cpu {
                 (false, 4)
             }
             0x80 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.b);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2104,7 +2105,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.b,
                         self.registers.pc
                     );
@@ -2113,6 +2114,7 @@ impl Cpu {
                 (false, 4)
             }
             0x81 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.c);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2124,7 +2126,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.c,
                         self.registers.pc
                     );
@@ -2133,6 +2135,7 @@ impl Cpu {
                 (false, 4)
             }
             0x82 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.d);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2144,7 +2147,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.d,
                         self.registers.pc
                     );
@@ -2153,6 +2156,7 @@ impl Cpu {
                 (false, 4)
             }
             0x83 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.e);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2164,7 +2168,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.e,
                         self.registers.pc
                     );
@@ -2173,6 +2177,7 @@ impl Cpu {
                 (false, 4)
             }
             0x84 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.h);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2184,7 +2189,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.h,
                         self.registers.pc
                     );
@@ -2193,6 +2198,7 @@ impl Cpu {
                 (false, 4)
             }
             0x85 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.l);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2204,7 +2210,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.l,
                         self.registers.pc
                     );
@@ -2214,6 +2220,7 @@ impl Cpu {
             }
             0x86 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original_a = self.registers.a;
                     let result = self.registers.a.wrapping_add(*value);
                     self.registers.set_z(result == 0);
                     self.registers.set_n(false);
@@ -2225,7 +2232,7 @@ impl Cpu {
                         println!(
                             "Opcode: {:#04X} ADD A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
                             opcode,
-                            self.registers.a,
+                            original_a,
                             *value,
                             self.registers.pc
                         );
@@ -2237,6 +2244,7 @@ impl Cpu {
                 (false, 8)
             }
             0x87 => {
+                let original_a = self.registers.a;
                 let result = self.registers.a.wrapping_add(self.registers.a);
                 self.registers.set_z(result == 0);
                 self.registers.set_n(false);
@@ -2248,7 +2256,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADD A A, with A = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.pc
                     );
                 }
@@ -2256,6 +2264,7 @@ impl Cpu {
                 (false, 4)
             }
             0x88 => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.b).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2270,7 +2279,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A B, with A = {:#04X} & B = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.b,
                         carry,
                         self.registers.pc
@@ -2280,6 +2289,7 @@ impl Cpu {
                 (false, 4)
             }
             0x89 => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.c).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2294,7 +2304,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A C, with A = {:#04X} & C = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.c,
                         carry,
                         self.registers.pc
@@ -2304,6 +2314,7 @@ impl Cpu {
                 (false, 4)
             }
             0x8A => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.d).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2318,7 +2329,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A D, with A = {:#04X} & D = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.d,
                         carry,
                         self.registers.pc
@@ -2328,6 +2339,7 @@ impl Cpu {
                 (false, 4)
             }
             0x8B => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.e).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2342,7 +2354,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A E, with A = {:#04X} & E = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.e,
                         carry,
                         self.registers.pc
@@ -2352,6 +2364,7 @@ impl Cpu {
                 (false, 4)
             }
             0x8C => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.h).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2366,7 +2379,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A H, with A = {:#04X} & H = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.h,
                         carry,
                         self.registers.pc
@@ -2376,6 +2389,7 @@ impl Cpu {
                 (false, 4)
             }
             0x8D => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.l).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2390,7 +2404,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A L, with A = {:#04X} & L = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.l,
                         carry,
                         self.registers.pc
@@ -2401,6 +2415,7 @@ impl Cpu {
             }
             0x8E => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original_a = self.registers.a;
                     let carry = self.registers.get_c() as u8;
                     let result = self.registers.a.wrapping_add(*value).wrapping_add(carry);
                     self.registers.set_z(result == 0);
@@ -2415,7 +2430,7 @@ impl Cpu {
                         println!(
                             "Opcode: {:#04X} ADC A [HL], with A = {:#04X} & [HL] = {:#04X} & Ca = {}, at PC {:#06X}",
                             opcode,
-                            self.registers.a,
+                            original_a,
                             *value,
                             carry,
                             self.registers.pc
@@ -2428,6 +2443,7 @@ impl Cpu {
                 (false, 8)
             }
             0x8F => {
+                let original_a = self.registers.a;
                 let carry = self.registers.get_c() as u8;
                 let result = self.registers.a.wrapping_add(self.registers.a).wrapping_add(carry);
                 self.registers.set_z(result == 0);
@@ -2442,7 +2458,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} ADC A A, with A = {:#04X} & Ca = {}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         carry,
                         self.registers.pc
                     );
@@ -2450,7 +2466,176 @@ impl Cpu {
 
                 (false, 4)
             }
+            0x90 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.b);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.b & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.b);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.b,
+                        self.registers.pc
+                    );
+                }
+                
+                (false, 4)
+            }
+            0x91 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.c);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.c & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.c);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.c,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x92 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.d);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.d & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.d);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.d,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x93 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.e);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.e & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.e);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.e,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x94 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.h);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.h & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.h);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.h,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x95 => {
+                let original_a = self.registers.a;
+                let result = self.registers.a.wrapping_sub(self.registers.l);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(true);
+                self.registers.set_h((self.registers.a & 0x0F) < (self.registers.l & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.l);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.l,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x96 => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original_a = self.registers.a;
+                    let result = self.registers.a.wrapping_sub(*value);
+                    self.registers.set_z(result == 0);
+                    self.registers.set_n(true);
+                    self.registers.set_h((self.registers.a & 0x0F) < (*value & 0x0F));
+                    self.registers.set_c(self.registers.a < *value);
+                    self.registers.a = result;
+
+                    if self.debug_instructions {
+                        println!(
+                            "Opcode: {:#04X} SUB A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
+                            opcode,
+                            original_a,
+                            *value,
+                            self.registers.pc
+                        );
+                    }
+                }
+
+                (false, 8)
+            }
+            0x97 => {
+                let original_a = self.registers.a;
+                self.registers.set_z(true);
+                self.registers.set_n(true);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+                self.registers.a = 0;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SUB A A, with A = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        original_a,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
             0xA0 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.b;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2461,7 +2646,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.b,
                         self.registers.pc
                     );
@@ -2470,6 +2655,7 @@ impl Cpu {
                 (false, 4)
             }
             0xA1 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.c;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2480,7 +2666,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.c,
                         self.registers.pc
                     );
@@ -2489,6 +2675,7 @@ impl Cpu {
                 (false, 4)
             }
             0xA2 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.d;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2499,7 +2686,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.d,
                         self.registers.pc
                     );
@@ -2508,6 +2695,7 @@ impl Cpu {
                 (false, 4)
             }
             0xA3 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.e;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2518,7 +2706,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.e,
                         self.registers.pc
                     );
@@ -2527,6 +2715,7 @@ impl Cpu {
                 (false, 4)
             }
             0xA4 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.h;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2537,7 +2726,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.h,
                         self.registers.pc
                     );
@@ -2546,6 +2735,7 @@ impl Cpu {
                 (false, 4)
             }
             0xA5 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.l;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2556,7 +2746,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.l,
                         self.registers.pc
                     );
@@ -2566,6 +2756,7 @@ impl Cpu {
             }
             0xA6 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let original_a = self.registers.a;
                     self.registers.a &= *value;
                     self.registers.set_z(self.registers.a == 0);
                     self.registers.set_n(false);
@@ -2576,7 +2767,7 @@ impl Cpu {
                         println!(
                             "Opcode: {:#04X} AND A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
                             opcode,
-                            self.registers.a,
+                            original_a,
                             *value,
                             self.registers.pc
                         );
@@ -2588,6 +2779,7 @@ impl Cpu {
                 (false, 8)
             }
             0xA7 => {
+                let original_a = self.registers.a;
                 self.registers.a &= self.registers.a;
                 self.registers.set_z(self.registers.a == 0);
                 self.registers.set_n(false);
@@ -2598,7 +2790,7 @@ impl Cpu {
                     println!(
                         "Opcode: {:#04X} AND A A, with A = {:#04X}, at PC {:#06X}",
                         opcode,
-                        self.registers.a,
+                        original_a,
                         self.registers.pc
                     );
                 }
