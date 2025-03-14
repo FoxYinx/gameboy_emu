@@ -2214,6 +2214,9 @@ impl Cpu {
                     (false, 12)
                 }
             }
+            0xDB => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
             0xDC => {
                 if self.registers.get_c() {
                     self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -2249,6 +2252,9 @@ impl Cpu {
                     }
                     (false, 12)
                 }
+            }
+            0xDD => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
             }
             0xDE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -2303,6 +2309,12 @@ impl Cpu {
                     eprintln!("Failed to get low value of pop at PC {:#06X}", self.registers.pc);
                 }
                 (false, 12)
+            }
+            0xE3 => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
+            0xE4 => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
             }
             0xE5 => {
                 let hl = self.registers.get_hl();
@@ -2382,6 +2394,15 @@ impl Cpu {
                 }
                 (false, 16)
             }
+            0xEB => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
+            0xEC => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
+            0xED => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
             0xEE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
@@ -2443,6 +2464,9 @@ impl Cpu {
                 self.ime = false;
                 self.ime_pending = 0;
                 (false, 4)
+            }
+            0xF4 => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
             }
             0xF5 => {
                 let af = self.registers.get_af();
@@ -2536,6 +2560,12 @@ impl Cpu {
 
                 self.ime_pending = 2;
                 (false, 4)
+            }
+            0xFC => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
+            }
+            0xFD => {
+                panic!("This opcode: {:#04X} doesn't exist, at PC {:#06X}", opcode, self.registers.pc);
             }
             0xFE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
