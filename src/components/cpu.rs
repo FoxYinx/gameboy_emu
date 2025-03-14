@@ -521,10 +521,7 @@ impl Cpu {
                 if self.debug_instructions {
                     println!(
                         "Opcode: {:#04X} RLA, A = {:#04X} (C={}), at PC {:#06X}",
-                        opcode,
-                        self.registers.a,
-                        new_carry,
-                        self.registers.pc
+                        opcode, self.registers.a, new_carry, self.registers.pc
                     );
                 }
 
@@ -1162,6 +1159,19 @@ impl Cpu {
                     eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
                 }
                 (false, 12)
+            }
+            0x37 => {
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} SCF, at PC {:#06X}",
+                        opcode, self.registers.pc
+                    );
+                }
+
+                self.registers.set_n(false);
+                self.registers.set_h(false);
+                self.registers.set_c(true);
+                (false, 4)
             }
             0x38 => {
                 let mut cycles = 8;
