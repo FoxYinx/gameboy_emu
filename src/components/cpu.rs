@@ -2575,6 +2575,20 @@ impl Cpu {
                 }
                 (false, 12)
             }
+            0xF2 => {
+                let address = 0xFF00 | self.registers.c as u16;
+                if let Some(value) = memory.get(address as usize) {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} LDH A [C], with C = {:#04X} & [C] = {:#04X}, at PC {:#06X}", opcode, self.registers.c, address, self.registers.pc);
+                    }
+
+                    self.registers.a = *value;
+                } else {
+                    eprintln!("Failed to get value at address = {:#06X}", address);
+                }
+                
+                (false, 8)
+            }
             0xF3 => {
                 if self.debug_instructions {
                     println!("Opcode: {:#04X} DI, at PC {:#06X}", opcode, self.registers.pc);
