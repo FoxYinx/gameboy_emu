@@ -2092,6 +2092,169 @@ impl Cpu {
 
                 (false, 4)
             }
+            0x80 => {
+                let result = self.registers.a.wrapping_add(self.registers.b);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.b & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.b as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A B, with A = {:#04X} & B = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.b,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x81 => {
+                let result = self.registers.a.wrapping_add(self.registers.c);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.c & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.c as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A C, with A = {:#04X} & C = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.c,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x82 => {
+                let result = self.registers.a.wrapping_add(self.registers.d);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.d & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.d as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A D, with A = {:#04X} & D = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.d,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x83 => {
+                let result = self.registers.a.wrapping_add(self.registers.e);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.e & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.e as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A E, with A = {:#04X} & E = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.e,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x84 => {
+                let result = self.registers.a.wrapping_add(self.registers.h);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.h & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.h as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.h,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x85 => {
+                let result = self.registers.a.wrapping_add(self.registers.l);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.l & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.l as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.l,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0x86 => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    let result = self.registers.a.wrapping_add(*value);
+                    self.registers.set_z(result == 0);
+                    self.registers.set_n(false);
+                    self.registers.set_h((self.registers.a & 0x0F) + (*value & 0x0F) > 0x0F);
+                    self.registers.set_c((self.registers.a as u16) + (*value as u16) > 0xFF);
+                    self.registers.a = result;
+
+                    if self.debug_instructions {
+                        println!(
+                            "Opcode: {:#04X} ADD A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
+                            opcode,
+                            self.registers.a,
+                            *value,
+                            self.registers.pc
+                        );
+                    }
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+
+                (false, 8)
+            }
+            0x87 => {
+                let result = self.registers.a.wrapping_add(self.registers.a);
+                self.registers.set_z(result == 0);
+                self.registers.set_n(false);
+                self.registers.set_h((self.registers.a & 0x0F) + (self.registers.a & 0x0F) > 0x0F);
+                self.registers.set_c((self.registers.a as u16) + (self.registers.a as u16) > 0xFF);
+                self.registers.a = result;
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} ADD A A, with A = {:#04X}, at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
             0xA8 => {
                 if self.debug_instructions {
                     println!(
