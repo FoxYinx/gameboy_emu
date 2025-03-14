@@ -1649,6 +1649,35 @@ impl Cpu {
 
                 (false, 4)
             }
+            0xC0 => {
+                if !self.registers.get_z() {
+                    if let Some(low) = memory.get(self.registers.sp as usize) {
+                        self.registers.sp = self.registers.sp.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.sp as usize) {
+                            self.registers.sp = self.registers.sp.wrapping_add(1);
+                            let return_address = ((*high as u16) << 8) | *low as u16;
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} RET NZ to {:#06X}, PC was {:#06X}", opcode, return_address, self.registers.pc);
+                            }
+
+                            self.registers.pc = return_address;
+                            (true, 20)
+                        } else {
+                            eprintln!("Failed to get high value of return address at PC {:#06X}", self.registers.pc);
+                            (false, 8)
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of return address at PC {:#06X}", self.registers.pc);
+                        (false, 8)
+                    }
+                } else {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} RET NZ but Z was true, at PC {:#06X}", opcode, self.registers.pc);
+                    }
+                    (false, 8)
+                }
+            }
             0xC1 => {
                 if let Some(low) = memory.get(self.registers.sp as usize) {
                     self.registers.sp = self.registers.sp.wrapping_add(1);
