@@ -1829,7 +1829,7 @@ impl Cpu {
                 self.registers.pc = 0x0000;
 
                 if self.debug_instructions {
-                    println!("Opcode: {:#04X} RST $10, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                    println!("Opcode: {:#04X} RST $00, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
                 }
 
                 (true, 16)
@@ -2031,7 +2031,7 @@ impl Cpu {
                 self.registers.pc = 0x0008;
 
                 if self.debug_instructions {
-                    println!("Opcode: {:#04X} RST $10, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                    println!("Opcode: {:#04X} RST $08, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
                 }
 
                 (true, 16)

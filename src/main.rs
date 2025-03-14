@@ -9,7 +9,7 @@ fn main() {
     let start = Instant::now();
     
     let mut gameboy = Gameboy::new();
-    //gameboy.toggle_debug_instructions();
+    gameboy.toggle_debug_instructions();
     //gameboy.toggle_debug_registers();
     gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb"));
     gameboy.start(None);
