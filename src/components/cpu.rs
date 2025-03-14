@@ -1818,6 +1818,22 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0xC7 => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+                
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0000;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $10, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
+            }
             0xC8 => {
                 if self.registers.get_z() {
                     if let Some(low) = memory.get(self.registers.sp as usize) {
@@ -2004,6 +2020,22 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0xCF => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0008;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $10, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
+            }
             0xD0 => {
                 if !self.registers.get_c() {
                     if let Some(low) = memory.get(self.registers.sp as usize) {
@@ -2154,6 +2186,22 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0xD7 => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0010;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $10, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
+            }
             0xD8 => {
                 if self.registers.get_c() {
                     if let Some(low) = memory.get(self.registers.sp as usize) {
@@ -2300,6 +2348,22 @@ impl Cpu {
                 }
                 (false, 8)
             }
+            0xDF => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0018;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $18, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
+            }
             0xE0 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
@@ -2370,6 +2434,22 @@ impl Cpu {
                     eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
                 }
                 (false, 8)
+            }
+            0xE7 => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0020;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $20, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
             }
             0xE8 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -2442,6 +2522,22 @@ impl Cpu {
                     eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
                 }
                 (false, 8)
+            }
+            0xEF => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0028;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $28, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
             }
             0xF0 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -2523,6 +2619,22 @@ impl Cpu {
                 }
 
                 (false, 8)
+            }
+            0xF7 => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0030;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $30, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
             }
             0xF8 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
@@ -2606,6 +2718,22 @@ impl Cpu {
                     eprintln!("Failed to get high n8 at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
+            }
+            0xFF => {
+                let return_address = self.registers.pc;
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                memory.write_memory(self.registers.sp as usize, return_address as u8);
+
+                let old_pc = self.registers.pc;
+                self.registers.pc = 0x0038;
+
+                if self.debug_instructions {
+                    println!("Opcode: {:#04X} RST $38, return address = {:#06X} & SP = {:#06X}, at PC {:#06X}", opcode, return_address, self.registers.sp, old_pc);
+                }
+
+                (true, 16)
             }
             _ => {
                 panic!("Unimplemented opcode: {:#04X}, at PC {:#06X}", opcode, self.registers.pc);
