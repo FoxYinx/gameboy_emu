@@ -2147,6 +2147,37 @@ impl Cpu {
                     (false, 8)
                 }
             }
+            0xDA => {
+                if self.registers.get_c() {
+                    self.registers.pc = self.registers.pc.wrapping_add(1);
+                    if let Some(low) = memory.get(self.registers.pc as usize) {
+                        self.registers.pc = self.registers.pc.wrapping_add(1);
+                        if let Some(high) = memory.get(self.registers.pc as usize) {
+                            let address = ((*high as u16) << 8) | *low as u16;
+
+                            if self.debug_instructions {
+                                println!("Opcode: {:#04X} JP C a16, with a16 = {:#06X}, at PC {:#06X}", opcode, address, self.registers.pc.wrapping_sub(2));
+                            }
+
+                            self.registers.pc = address;
+                            (true, 16)
+                        } else {
+                            eprintln!("Failed to get high value of jump address at PC {:#06X}", self.registers.pc);
+                            (false, 12)
+                        }
+                    } else {
+                        eprintln!("Failed to get low value of jump address at PC {:#06X}", self.registers.pc);
+                        (false, 12)
+                    }
+                } else {
+                    if self.debug_instructions {
+                        println!("Opcode: {:#04X} JP C a16 but C was false, at PC {:#06X}", opcode, self.registers.pc);
+                    }
+
+                    self.registers.pc = self.registers.pc.wrapping_add(2);
+                    (false, 12)
+                }
+            }
             0xDE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(value) = memory.get(self.registers.pc as usize) {
