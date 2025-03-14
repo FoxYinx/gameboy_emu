@@ -508,17 +508,23 @@ impl Cpu {
             }
             0x17 => {
                 let original_a = self.registers.a;
-                self.registers.a = original_a.rotate_left(1);
+                let carry_bit = self.registers.get_c() as u8;
+
+                self.registers.a = (original_a << 1) | carry_bit;
+                let new_carry = (original_a & 0x80) != 0;
 
                 self.registers.set_z(false);
                 self.registers.set_n(false);
                 self.registers.set_h(false);
-                self.registers.set_c(original_a & 0x80 != 0);
+                self.registers.set_c(new_carry);
 
                 if self.debug_instructions {
                     println!(
-                        "Opcode: {:#04X} RLCA, with A = {:#04X}, at PC {:#06X}",
-                        opcode, original_a, self.registers.pc
+                        "Opcode: {:#04X} RLA, A = {:#04X} (C={}), at PC {:#06X}",
+                        opcode,
+                        self.registers.a,
+                        new_carry,
+                        self.registers.pc
                     );
                 }
 
