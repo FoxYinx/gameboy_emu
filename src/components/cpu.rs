@@ -2408,6 +2408,72 @@ impl Cpu {
 
                 (false, 4)
             }
+            0xBC => {
+                self.registers.set_z(self.registers.a == self.registers.h);
+                self.registers.set_n(true);
+                self.registers
+                    .set_h((self.registers.a & 0x0F) < (self.registers.h & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.h);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} CP A H, with A = {:#04X} & H = {:#04X}, at PC {:#06X}",
+                        opcode, self.registers.a, self.registers.h, self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xBD => {
+                self.registers.set_z(self.registers.a == self.registers.l);
+                self.registers.set_n(true);
+                self.registers
+                    .set_h((self.registers.a & 0x0F) < (self.registers.l & 0x0F));
+                self.registers.set_c(self.registers.a < self.registers.l);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} CP A L, with A = {:#04X} & L = {:#04X}, at PC {:#06X}",
+                        opcode, self.registers.a, self.registers.l, self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
+            0xBE => {
+                if let Some(value) = memory.get(self.registers.get_hl() as usize) {
+                    self.registers.set_z(self.registers.a == *value);
+                    self.registers.set_n(true);
+                    self.registers
+                        .set_h((self.registers.a & 0x0F) < (*value & 0x0F));
+                    self.registers.set_c(self.registers.a < *value);
+
+                    if self.debug_instructions {
+                        println!(
+                            "Opcode: {:#04X} CP A [HL], with A = {:#04X} & [HL] = {:#04X}, at PC {:#06X}",
+                            opcode, self.registers.a, *value, self.registers.pc
+                        );
+                    }
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
+                }
+                (false, 4)
+            }
+            0xBF => {
+                self.registers.set_z(true);
+                self.registers.set_n(true);
+                self.registers.set_h(false);
+                self.registers.set_c(false);
+
+                if self.debug_instructions {
+                    println!(
+                        "Opcode: {:#04X} CP A A, with A = {:#04X}, at PC {:#06X}",
+                        opcode, self.registers.a, self.registers.pc
+                    );
+                }
+
+                (false, 4)
+            }
             0xC0 => {
                 if !self.registers.get_z() {
                     if let Some(low) = memory.get(self.registers.sp as usize) {
