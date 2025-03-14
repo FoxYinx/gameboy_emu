@@ -396,6 +396,9 @@ impl Cpu {
 
                 (false, 4)
             }
+            0x10 => {
+                panic!("STOP");
+            }
             0x11 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(low) = memory.get(self.registers.pc as usize) {
