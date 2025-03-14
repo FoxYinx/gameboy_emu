@@ -2813,7 +2813,7 @@ impl Cpu {
 
                 self.registers.set_z(result == 0);
                 self.registers.set_n(true);
-                self.registers.set_h(carry > 0);
+                self.registers.set_h(carry != 0);
                 self.registers.a = result;
 
                 if self.debug_instructions {
