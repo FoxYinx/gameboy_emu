@@ -147,4 +147,13 @@ mod tests {
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
+
+    #[test]
+    fn rom_08_misc() {
+        let mut gameboy = Gameboy::new();
+        gameboy.cartridge_to_rom(String::from("resources/roms/cpu_instrs/individual/08-misc instrs.gb"));
+        gameboy.start(Some(2_000_000));
+        let output = gameboy.memory.get_serial_output().get_output();
+        assert!(output.contains("Passed"), "Test failed. Output: {}", output);
+    }
 }
