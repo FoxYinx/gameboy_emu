@@ -39,7 +39,7 @@ impl Cpu {
         }
     }
 
-    pub fn check_interrupts(&mut self, memory: &mut Memory) -> Option<u64> {
+    pub fn check_interrupts(&mut self, memory: &mut Memory) {
         if self.ime {
             if let Some(ie) = memory.get(0xFFFF) {
                 if let Some(if_) = memory.get(0xFF0F) {
@@ -68,12 +68,9 @@ impl Cpu {
                         self.ime = false;
                         self.halted = false;
                     }
-
-                    return Some(20);
                 }
             }
         }
-        None
     }
 
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> (bool, u64) {

@@ -72,9 +72,7 @@ impl Gameboy {
                 self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
             }
 
-            if let Some(cycles) = self.cpu.check_interrupts(&mut self.memory) {
-                self.memory.update_timer(cycles);
-            }
+            self.cpu.check_interrupts(&mut self.memory);
         } else {
             panic!("Tried to access address outside of ROM");
         }
