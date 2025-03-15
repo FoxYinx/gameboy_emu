@@ -826,91 +826,39 @@ impl Cpu {
                 (false, 4)
             }
             0x90 => {
-                let result = self.registers.a.wrapping_sub(self.registers.b);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.b & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.b);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.b);
                 (false, 4)
             }
             0x91 => {
-                let result = self.registers.a.wrapping_sub(self.registers.c);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.c & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.c);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.c);
                 (false, 4)
             }
             0x92 => {
-                let result = self.registers.a.wrapping_sub(self.registers.d);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.d & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.d);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.d);
                 (false, 4)
             }
             0x93 => {
-                let result = self.registers.a.wrapping_sub(self.registers.e);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.e & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.e);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.e);
                 (false, 4)
             }
             0x94 => {
-                let result = self.registers.a.wrapping_sub(self.registers.h);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.h & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.h);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.h);
                 (false, 4)
             }
             0x95 => {
-                let result = self.registers.a.wrapping_sub(self.registers.l);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.l & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.l);
-                self.registers.a = result;
-
+                self.sub_a_r8(self.registers.l);
                 (false, 4)
             }
             0x96 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    let result = self.registers.a.wrapping_sub(*value);
-                    self.registers.set_z(result == 0);
-                    self.registers.set_n(true);
-                    self.registers
-                        .set_h((self.registers.a & 0x0F) < (*value & 0x0F));
-                    self.registers.set_c(self.registers.a < *value);
-                    self.registers.a = result;
+                    self.sub_a_r8(*value);
+                } else {
+                    eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-
                 (false, 8)
             }
             0x97 => {
-                self.registers.set_z(true);
-                self.registers.set_n(true);
-                self.registers.set_h(false);
-                self.registers.set_c(false);
-                self.registers.a = 0;
-
+                self.sub_a_r8(self.registers.a);
                 (false, 4)
             }
             0x98 => {
@@ -2241,6 +2189,16 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn sub_a_r8(&mut self, value: u8) {
+        let a = self.registers.a;
+        let result = a.wrapping_sub(value);
+        self.registers.set_z(result == 0);
+        self.registers.set_n(true);
+        self.registers.set_h((a & 0x0F) < (value & 0x0F));
+        self.registers.set_c(a < value);
+        self.registers.a = result;
     }
 
     fn adc_a_r8(&mut self, value: u8) {
