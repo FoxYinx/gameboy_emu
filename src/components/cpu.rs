@@ -272,7 +272,6 @@ impl Cpu {
                 (false, 20)
             }
             0x09 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
                 let hl = self.registers.get_hl();
                 let bc = self.registers.get_bc();
                 let sum = hl as u32 + bc as u32;
@@ -555,7 +554,6 @@ impl Cpu {
                 (false, 12)
             }
             0x19 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
                 let hl = self.registers.get_hl();
                 let de = self.registers.get_de();
                 let sum = hl as u32 + de as u32;
@@ -887,7 +885,6 @@ impl Cpu {
                 (false, cycles)
             }
             0x29 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
                 let hl = self.registers.get_hl();
                 let sum = hl as u32 + hl as u32;
                 let new_hl = sum as u16;
@@ -1212,7 +1209,6 @@ impl Cpu {
                 (false, cycles)
             }
             0x39 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
                 let hl = self.registers.get_hl();
                 let sp = self.registers.sp;
                 let sum = hl as u32 + sp as u32;
