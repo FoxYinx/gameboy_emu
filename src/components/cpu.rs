@@ -111,11 +111,7 @@ impl Cpu {
                 (false, 8)
             }
             0x04 => {
-                let original = self.registers.b;
-                self.registers.b = self.registers.b.wrapping_add(1);
-                self.registers.set_z(self.registers.b == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.b = self.inc_r8(self.registers.b);
                 (false, 4)
             }
             0x05 => {
@@ -184,11 +180,7 @@ impl Cpu {
                 (false, 8)
             }
             0x0C => {
-                let original = self.registers.c;
-                self.registers.c = self.registers.c.wrapping_add(1);
-                self.registers.set_z(self.registers.c == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.c = self.inc_r8(self.registers.c);
                 (false, 4)
             }
             0x0D => {
@@ -234,11 +226,7 @@ impl Cpu {
                 (false, 8)
             }
             0x14 => {
-                let original = self.registers.d;
-                self.registers.d = self.registers.d.wrapping_add(1);
-                self.registers.set_z(self.registers.d == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.d = self.inc_r8(self.registers.d);
                 (false, 4)
             }
             0x15 => {
@@ -292,11 +280,7 @@ impl Cpu {
                 (false, 8)
             }
             0x1C => {
-                let original = self.registers.e;
-                self.registers.e = self.registers.e.wrapping_add(1);
-                self.registers.set_z(self.registers.e == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.e = self.inc_r8(self.registers.e);
                 (false, 4)
             }
             0x1D => {
@@ -354,11 +338,7 @@ impl Cpu {
                 (false, 8)
             }
             0x24 => {
-                let original = self.registers.h;
-                self.registers.h = self.registers.h.wrapping_add(1);
-                self.registers.set_z(self.registers.h == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.h = self.inc_r8(self.registers.h);
                 (false, 4)
             }
             0x25 => {
@@ -430,11 +410,7 @@ impl Cpu {
                 (false, 8)
             }
             0x2C => {
-                let original = self.registers.l;
-                self.registers.l = self.registers.l.wrapping_add(1);
-                self.registers.set_z(self.registers.l == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.l = self.inc_r8(self.registers.l);
                 (false, 4)
             }
             0x2D => {
@@ -557,11 +533,7 @@ impl Cpu {
                 (false, 8)
             }
             0x3C => {
-                let original = self.registers.a;
-                self.registers.a = self.registers.a.wrapping_add(1);
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h((original & 0x0F) == 0x0F);
+                self.registers.a = self.inc_r8(self.registers.a);
                 (false, 4)
             }
             0x3D => {
@@ -2513,10 +2485,19 @@ impl Cpu {
             _ => unreachable!(),
         }
     }
-    
+
+    fn inc_r8(&mut self, reg: u8) -> u8 {
+        let original = reg;
+        let new_value = reg.wrapping_add(1);
+        self.registers.set_z(new_value == 0);
+        self.registers.set_n(false);
+        self.registers.set_h((original & 0x0F) == 0x0F);
+        new_value
+    }
+
     fn add_hl_r16(&mut self, opcode: u8) {
         let hl = self.registers.get_hl();
-        let r16 = match (opcode & 0x30) >> 4 { 
+        let r16 = match (opcode & 0x30) >> 4 {
             0 => self.registers.get_bc(),
             1 => self.registers.get_de(),
             2 => self.registers.get_hl(),
