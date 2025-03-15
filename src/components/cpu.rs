@@ -1149,15 +1149,10 @@ impl Cpu {
             }
             0xC6 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    let a = self.registers.a;
-                    self.registers.a = self.registers.a.wrapping_add(*value);
-                    self.registers.set_z(self.registers.a == 0x00);
-                    self.registers.set_n(false);
-                    self.registers.set_h((a & 0x0F) + (*value & 0x0F) > 0x0F);
-                    self.registers.set_c(a as u16 + *value as u16 > 0xFF);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.add_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1310,24 +1305,10 @@ impl Cpu {
             }
             0xCE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    let a = self.registers.a;
-                    let carry = self.registers.get_c() as u8;
-                    let sum = a.wrapping_add(*value).wrapping_add(carry);
-                    self.registers.a = sum;
-
-                    self.registers.set_z(sum == 0);
-                    self.registers.set_n(false);
-
-                    let a_lower = a & 0x0F;
-                    let d8_lower = *value & 0x0F;
-                    let sum_lower = a_lower + d8_lower + carry;
-                    self.registers.set_h(sum_lower > 0x0F);
-
-                    let sum_full = (a as u16) + (*value as u16) + (carry as u16);
-                    self.registers.set_c(sum_full > 0xFF);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.adc_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to retrieve value at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1451,15 +1432,10 @@ impl Cpu {
             }
             0xD6 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    let a = self.registers.a;
-                    self.registers.a = self.registers.a.wrapping_sub(*value);
-                    self.registers.set_z(self.registers.a == 0x00);
-                    self.registers.set_n(true);
-                    self.registers.set_h((a & 0xF) < (*value & 0xF));
-                    self.registers.set_c(a < *value);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.sub_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1582,19 +1558,10 @@ impl Cpu {
             }
             0xDE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    let a = self.registers.a;
-                    let c = self.registers.get_c() as u8;
-                    let total_sub = *value as u16 + c as u16;
-                    self.registers.a = a.wrapping_sub(*value).wrapping_sub(c);
-
-                    self.registers.set_z(self.registers.a == 0);
-                    self.registers.set_n(true);
-                    self.registers
-                        .set_h(((a & 0x0F) as u16) < ((*value & 0x0F) as u16 + c as u16));
-                    self.registers.set_c((a as u16) < total_sub);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.sbc_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1666,14 +1633,10 @@ impl Cpu {
             }
             0xE6 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    self.registers.a &= *value;
-                    self.registers.set_z(self.registers.a == 0x00);
-                    self.registers.set_n(false);
-                    self.registers.set_h(true);
-                    self.registers.set_c(false);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.and_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1750,14 +1713,10 @@ impl Cpu {
             }
             0xEE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    self.registers.a ^= *value;
-                    self.registers.set_z(self.registers.a == 0x00);
-                    self.registers.set_n(false);
-                    self.registers.set_h(false);
-                    self.registers.set_c(false);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.xor_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get n8 at PC {:#06X}", self.registers.pc)
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
@@ -1837,16 +1796,11 @@ impl Cpu {
             }
             0xF6 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(value) = memory.get(self.registers.pc as usize) {
-                    self.registers.a |= *value;
-                    self.registers.set_z(self.registers.a == 0x00);
-                    self.registers.set_n(false);
-                    self.registers.set_h(false);
-                    self.registers.set_c(false);
+                if let Some(n8) = memory.get(self.registers.pc as usize) {
+                    self.or_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to access n8 at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
-
                 (false, 8)
             }
             0xF7 => {
@@ -1923,13 +1877,9 @@ impl Cpu {
             0xFE => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if let Some(n8) = memory.get(self.registers.pc as usize) {
-                    let a = self.registers.a;
-                    self.registers.set_z(a == *n8);
-                    self.registers.set_n(true);
-                    self.registers.set_h((a & 0x0F) < (*n8 & 0x0F));
-                    self.registers.set_c(a < *n8);
+                    self.cp_a_r8(*n8);
                 } else {
-                    eprintln!("Failed to get high n8 at PC {:#06X}", self.registers.pc);
+                    eprintln!("Failed to get value at PC {:#06X}", self.registers.pc);
                 }
                 (false, 8)
             }
