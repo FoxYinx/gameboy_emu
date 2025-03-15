@@ -167,14 +167,7 @@ impl Cpu {
                 (false, 20)
             }
             0x09 => {
-                let hl = self.registers.get_hl();
-                let bc = self.registers.get_bc();
-                let sum = hl as u32 + bc as u32;
-                let new_hl = sum as u16;
-                self.registers.set_hl(new_hl);
-                self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) + (bc & 0x0FFF) > 0x0FFF);
-                self.registers.set_c(sum > 0xFFFF);
+                self.add_hl_r16(opcode);
                 (false, 8)
             }
             0x0A => {
@@ -282,14 +275,7 @@ impl Cpu {
                 (false, 12)
             }
             0x19 => {
-                let hl = self.registers.get_hl();
-                let de = self.registers.get_de();
-                let sum = hl as u32 + de as u32;
-                let new_hl = sum as u16;
-                self.registers.set_hl(new_hl);
-                self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) + (de & 0x0FFF) > 0x0FFF);
-                self.registers.set_c(sum > 0xFFFF);
+                self.add_hl_r16(opcode);
                 (false, 8)
             }
             0x1A => {
@@ -425,14 +411,7 @@ impl Cpu {
                 }
             }
             0x29 => {
-                let hl = self.registers.get_hl();
-                let sum = hl as u32 + hl as u32;
-                let new_hl = sum as u16;
-                self.registers.set_hl(new_hl);
-                self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) * 2 > 0x0FFF);
-                self.registers.set_c(sum > 0xFFFF);
-
+                self.add_hl_r16(opcode);
                 (false, 8)
             }
             0x2A => {
@@ -510,11 +489,9 @@ impl Cpu {
             0x34 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
                     let result = value.wrapping_add(1);
-
                     self.registers.set_z(result == 0);
                     self.registers.set_n(false);
                     self.registers.set_h((*value & 0x0F) == 0x0F);
-
                     memory.write_memory(self.registers.get_hl() as usize, result);
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
@@ -526,7 +503,6 @@ impl Cpu {
                     let original = *value;
                     let result = value.wrapping_sub(1);
                     memory.write_memory(self.registers.get_hl() as usize, result);
-
                     self.registers.set_z(result == 0);
                     self.registers.set_n(true);
                     self.registers.set_h((original & 0x0F) == 0x00);
@@ -536,7 +512,6 @@ impl Cpu {
                         self.registers.get_hl()
                     );
                 }
-
                 (false, 12)
             }
             0x36 => {
@@ -564,14 +539,7 @@ impl Cpu {
                 }
             }
             0x39 => {
-                let hl = self.registers.get_hl();
-                let sp = self.registers.sp;
-                let sum = hl as u32 + sp as u32;
-                let new_hl = sum as u16;
-                self.registers.set_hl(new_hl);
-                self.registers.set_n(false);
-                self.registers.set_h((hl & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF);
-                self.registers.set_c(sum > 0xFFFF);
+                self.add_hl_r16(opcode);
                 (false, 8)
             }
             0x3A => {
@@ -2544,6 +2512,23 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+    
+    fn add_hl_r16(&mut self, opcode: u8) {
+        let hl = self.registers.get_hl();
+        let r16 = match (opcode & 0x30) >> 4 { 
+            0 => self.registers.get_bc(),
+            1 => self.registers.get_de(),
+            2 => self.registers.get_hl(),
+            3 => self.registers.sp,
+            _ => unreachable!()
+        };
+        let sum = hl as u32 + r16 as u32;
+        let new_hl = sum as u16;
+        self.registers.set_hl(new_hl);
+        self.registers.set_n(false);
+        self.registers.set_h((hl & 0x0FFF) + (r16 & 0x0FFF) > 0x0FFF);
+        self.registers.set_c(sum > 0xFFFF);
     }
 
     fn ld_r16_n16(&mut self, memory: &mut Memory, opcode: u8) {
