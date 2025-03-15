@@ -1,9 +1,7 @@
-#[cfg(test)]
 pub struct SerialOutput {
     buffer: Vec<u8>,
 }
 
-#[cfg(test)]
 impl SerialOutput {
     pub fn new() -> Self {
         SerialOutput { buffer: Vec::new() }

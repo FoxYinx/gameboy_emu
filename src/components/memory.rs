@@ -1,9 +1,7 @@
-#[cfg(test)]
 use crate::io::serialoutput::SerialOutput;
 
 pub struct Memory {
     memory: [u8; 0x10000],
-    #[cfg(test)]
     serial_output: SerialOutput,
     cycles_div: u64,
     cycles_tima: u64,
@@ -13,7 +11,6 @@ impl Memory {
     pub fn new() -> Self {
         Memory {
             memory: [0; 0x10000],
-            #[cfg(test)]
             serial_output: SerialOutput::new(),
             cycles_div: 0,
             cycles_tima: 0,
@@ -36,7 +33,6 @@ impl Memory {
             0xFF02 => {
                 if value == 0x81 {
                     let byte = self.memory[0xFF01];
-                    #[cfg(test)]
                     self.serial_output.write_byte(byte);
                     print!("{}", byte as char);
                     self.memory[address] = 0x00;
@@ -102,8 +98,7 @@ impl Memory {
     pub fn write_cartridge(&mut self, cartridge_data: &[u8]) {
         self.memory[0x0000..cartridge_data.len()].copy_from_slice(cartridge_data);
     }
-    
-    #[cfg(test)]
+
     pub fn get_serial_output(&self) -> &SerialOutput {
         &self.serial_output
     }
