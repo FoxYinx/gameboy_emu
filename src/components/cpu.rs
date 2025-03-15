@@ -754,103 +754,39 @@ impl Cpu {
             }
             0x7F => (false, 4),
             0x80 => {
-                let result = self.registers.a.wrapping_add(self.registers.b);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.b & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.b as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.b);
                 (false, 4)
             }
             0x81 => {
-                let result = self.registers.a.wrapping_add(self.registers.c);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.c & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.c as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.c);
                 (false, 4)
             }
             0x82 => {
-                let result = self.registers.a.wrapping_add(self.registers.d);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.d & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.d as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.d);
                 (false, 4)
             }
             0x83 => {
-                let result = self.registers.a.wrapping_add(self.registers.e);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.e & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.e as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.e);
                 (false, 4)
             }
             0x84 => {
-                let result = self.registers.a.wrapping_add(self.registers.h);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.h & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.h as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.h);
                 (false, 4)
             }
             0x85 => {
-                let result = self.registers.a.wrapping_add(self.registers.l);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.l & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.l as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.l);
                 (false, 4)
             }
             0x86 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    let result = self.registers.a.wrapping_add(*value);
-                    self.registers.set_z(result == 0);
-                    self.registers.set_n(false);
-                    self.registers
-                        .set_h((self.registers.a & 0x0F) + (*value & 0x0F) > 0x0F);
-                    self.registers
-                        .set_c((self.registers.a as u16) + (*value as u16) > 0xFF);
-                    self.registers.a = result;
+                    self.add_a_r8(*value);
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-
                 (false, 8)
             }
             0x87 => {
-                let result = self.registers.a.wrapping_add(self.registers.a);
-                self.registers.set_z(result == 0);
-                self.registers.set_n(false);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) + (self.registers.a & 0x0F) > 0x0F);
-                self.registers
-                    .set_c((self.registers.a as u16) + (self.registers.a as u16) > 0xFF);
-                self.registers.a = result;
-
+                self.add_a_r8(self.registers.a);
                 (false, 4)
             }
             0x88 => {
@@ -2412,6 +2348,16 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn add_a_r8(&mut self, value: u8) {
+        let a = self.registers.a;
+        let result = a.wrapping_add(value);
+        self.registers.set_z(result == 0);
+        self.registers.set_n(false);
+        self.registers.set_h((a & 0x0F) + (value & 0x0F) > 0x0F);
+        self.registers.set_c((a as u16) + (value as u16) > 0xFF);
+        self.registers.a = result;
     }
 
     fn ld_r8_n8(&mut self, memory: &mut Memory) -> u8 {
