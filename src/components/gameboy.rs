@@ -87,7 +87,7 @@ mod tests {
     fn rom_01_special() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/01-special.gb",
+            "resources/roms/blargg/cpu_instrs/individual/01-special.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -98,7 +98,7 @@ mod tests {
     fn rom_02_interrupts() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/02-interrupts.gb",
+            "resources/roms/blargg/cpu_instrs/individual/02-interrupts.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -109,7 +109,7 @@ mod tests {
     fn rom_03_op_sp_hl() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/03-op sp,hl.gb",
+            "resources/roms/blargg/cpu_instrs/individual/03-op sp,hl.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -120,7 +120,7 @@ mod tests {
     fn rom_04_op_r_imm() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/04-op r,imm.gb",
+            "resources/roms/blargg/cpu_instrs/individual/04-op r,imm.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -131,7 +131,7 @@ mod tests {
     fn rom_05_op_rp() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/05-op rp.gb",
+            "resources/roms/blargg/cpu_instrs/individual/05-op rp.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -142,7 +142,7 @@ mod tests {
     fn rom_06_ld_r_r() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/06-ld r,r.gb",
+            "resources/roms/blargg/cpu_instrs/individual/06-ld r,r.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -153,7 +153,7 @@ mod tests {
     fn rom_07_jr_jp_call_ret_rst() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb",
+            "resources/roms/blargg/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -164,7 +164,7 @@ mod tests {
     fn rom_08_misc() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/08-misc instrs.gb",
+            "resources/roms/blargg/cpu_instrs/individual/08-misc instrs.gb",
         ));
         gameboy.start(Some(2_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -175,7 +175,7 @@ mod tests {
     fn rom_09_op_r_r() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/09-op r,r.gb",
+            "resources/roms/blargg/cpu_instrs/individual/09-op r,r.gb",
         ));
         gameboy.start(Some(4_500_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -186,7 +186,7 @@ mod tests {
     fn rom_10_bit_ops() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/10-bit ops.gb",
+            "resources/roms/blargg/cpu_instrs/individual/10-bit ops.gb",
         ));
         gameboy.start(Some(7_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -197,7 +197,7 @@ mod tests {
     fn rom_11_op_a_hl() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/cpu_instrs/individual/11-op a,(hl).gb",
+            "resources/roms/blargg/cpu_instrs/individual/11-op a,(hl).gb",
         ));
         gameboy.start(Some(7_500_000));
         let output = gameboy.memory.get_serial_output().get_output();
@@ -208,7 +208,7 @@ mod tests {
     fn rom_instr_timing() {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(String::from(
-            "resources/roms/instr_timing/instr_timing.gb",
+            "resources/roms/blargg/instr_timing/instr_timing.gb",
         ));
         gameboy.start(Some(300_000));
         let output = gameboy.memory.get_serial_output().get_output();
