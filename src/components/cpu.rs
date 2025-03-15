@@ -1414,7 +1414,6 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at address = {:#06X}", address);
                 }
-
                 (false, 8)
             }
             0xF3 => {
@@ -1563,7 +1562,8 @@ impl Cpu {
         self.registers.set_z(result == 0);
         self.registers.set_n(true);
         self.registers.set_h((a & 0x0F) < ((value & 0x0F) + carry));
-        self.registers.set_c((a as u16) < (value as u16 + carry as u16));
+        self.registers
+            .set_c((a as u16) < (value as u16 + carry as u16));
         self.registers.a = result;
     }
 
@@ -1583,8 +1583,10 @@ impl Cpu {
         let result = a.wrapping_add(value).wrapping_add(carry);
         self.registers.set_z(result == 0);
         self.registers.set_n(false);
-        self.registers.set_h((a & 0x0F) + (value & 0x0F) + carry > 0x0F);
-        self.registers.set_c((a as u16) + (value as u16) + (carry as u16) > 0xFF);
+        self.registers
+            .set_h((a & 0x0F) + (value & 0x0F) + carry > 0x0F);
+        self.registers
+            .set_c((a as u16) + (value as u16) + (carry as u16) > 0xFF);
         self.registers.a = result;
     }
 
@@ -1633,13 +1635,14 @@ impl Cpu {
             1 => self.registers.get_de(),
             2 => self.registers.get_hl(),
             3 => self.registers.sp,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         let sum = hl as u32 + r16 as u32;
         let new_hl = sum as u16;
         self.registers.set_hl(new_hl);
         self.registers.set_n(false);
-        self.registers.set_h((hl & 0x0FFF) + (r16 & 0x0FFF) > 0x0FFF);
+        self.registers
+            .set_h((hl & 0x0FFF) + (r16 & 0x0FFF) > 0x0FFF);
         self.registers.set_c(sum > 0xFFFF);
     }
 
@@ -1680,9 +1683,13 @@ impl Cpu {
     }
 
     fn pop(&mut self, memory: &Memory) -> u16 {
-        let low = memory.get(self.registers.sp as usize).expect("Failed to get low value of pop");
+        let low = memory
+            .get(self.registers.sp as usize)
+            .expect("Failed to get low value of pop");
         self.registers.sp = self.registers.sp.wrapping_add(1);
-        let high = memory.get(self.registers.sp as usize).expect("Failed to get high value of pop");
+        let high = memory
+            .get(self.registers.sp as usize)
+            .expect("Failed to get high value of pop");
         self.registers.sp = self.registers.sp.wrapping_add(1);
         u16::from_le_bytes([*low, *high])
     }
@@ -1704,10 +1711,7 @@ impl Cpu {
                 let address = ((*high as u16) << 8) | *low as u16;
                 let return_address = self.registers.pc.wrapping_add(1);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(
-                    self.registers.sp as usize,
-                    (return_address >> 8) as u8,
-                );
+                memory.write_memory(self.registers.sp as usize, (return_address >> 8) as u8);
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 memory.write_memory(self.registers.sp as usize, return_address as u8);
                 self.registers.pc = address;
