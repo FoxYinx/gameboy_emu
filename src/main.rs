@@ -9,7 +9,7 @@ fn main() {
     //gameboy.toggle_debug_instructions();
     //gameboy.toggle_debug_registers();
     gameboy.cartridge_to_rom(String::from(
-        "resources/roms/instr_timing/instr_timing.gb",
+        "resources/roms/mem_timing/individual/01-read_timing.gb",
     ));
     gameboy.start(None);
 }

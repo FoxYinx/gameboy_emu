@@ -1,4 +1,4 @@
-use crate::components::serialoutput::SerialOutput;
+use crate::io::serialoutput::SerialOutput;
 
 pub struct Memory {
     memory: [u8; 0x10000],
