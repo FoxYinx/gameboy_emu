@@ -29,10 +29,6 @@ impl Gameboy {
         }
     }
 
-    pub fn toggle_debug_instructions(&mut self) {
-        self.cpu.toggle_debug_instructions();
-    }
-
     pub fn toggle_debug_registers(&mut self) {
         self.cpu.toggle_debug_registers();
     }
