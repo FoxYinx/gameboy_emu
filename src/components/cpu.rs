@@ -898,79 +898,39 @@ impl Cpu {
                 (false, 4)
             }
             0xA0 => {
-                self.registers.a &= self.registers.b;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.b);
                 (false, 4)
             }
             0xA1 => {
-                self.registers.a &= self.registers.c;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.c);
                 (false, 4)
             }
             0xA2 => {
-                self.registers.a &= self.registers.d;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.d);
                 (false, 4)
             }
             0xA3 => {
-                self.registers.a &= self.registers.e;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.e);
                 (false, 4)
             }
             0xA4 => {
-                self.registers.a &= self.registers.h;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.h);
                 (false, 4)
             }
             0xA5 => {
-                self.registers.a &= self.registers.l;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.l);
                 (false, 4)
             }
             0xA6 => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    self.registers.a &= *value;
-                    self.registers.set_z(self.registers.a == 0);
-                    self.registers.set_n(false);
-                    self.registers.set_h(true);
-                    self.registers.set_c(false);
+                    self.and_a_r8(*value);
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-
                 (false, 8)
             }
             0xA7 => {
-                self.registers.a &= self.registers.a;
-                self.registers.set_z(self.registers.a == 0);
-                self.registers.set_n(false);
-                self.registers.set_h(true);
-                self.registers.set_c(false);
-
+                self.and_a_r8(self.registers.a);
                 (false, 4)
             }
             0xA8 => {
@@ -2088,6 +2048,14 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn and_a_r8(&mut self, value: u8) {
+        self.registers.a &= value;
+        self.registers.set_z(self.registers.a == 0);
+        self.registers.set_n(false);
+        self.registers.set_h(true);
+        self.registers.set_c(false);
     }
 
     fn sbc_a_r8(&mut self, value: u8) {
