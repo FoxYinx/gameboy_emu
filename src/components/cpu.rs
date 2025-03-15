@@ -862,140 +862,39 @@ impl Cpu {
                 (false, 4)
             }
             0x98 => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.b)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.b & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.b as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.b);
                 (false, 4)
             }
             0x99 => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.c)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.c & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.c as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.c);
                 (false, 4)
             }
             0x9A => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.d)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.d & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.d as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.d);
                 (false, 4)
             }
             0x9B => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.e)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.e & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.e as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.e);
                 (false, 4)
             }
             0x9C => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.h)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.h & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.h as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.h);
                 (false, 4)
             }
             0x9D => {
-                let carry = self.registers.get_c() as u8;
-                let result = self
-                    .registers
-                    .a
-                    .wrapping_sub(self.registers.l)
-                    .wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < ((self.registers.l & 0x0F) + carry));
-                self.registers
-                    .set_c((self.registers.a as u16) < (self.registers.l as u16 + carry as u16));
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.l);
                 (false, 4)
             }
             0x9E => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    let carry = self.registers.get_c() as u8;
-                    let result = self.registers.a.wrapping_sub(*value).wrapping_sub(carry);
-
-                    self.registers.set_z(result == 0);
-                    self.registers.set_n(true);
-                    self.registers
-                        .set_h((self.registers.a & 0x0F) < ((*value & 0x0F) + carry));
-                    self.registers
-                        .set_c((self.registers.a as u16) < (*value as u16 + carry as u16));
-                    self.registers.a = result;
+                    self.sbc_a_r8(*value);
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-
                 (false, 8)
             }
             0x9F => {
-                let carry = self.registers.get_c() as u8;
-                let result = 0u8.wrapping_sub(carry);
-
-                self.registers.set_z(result == 0);
-                self.registers.set_n(true);
-                self.registers.set_h(carry != 0);
-                self.registers.a = result;
-
+                self.sbc_a_r8(self.registers.a);
                 (false, 4)
             }
             0xA0 => {
@@ -2189,6 +2088,17 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn sbc_a_r8(&mut self, value: u8) {
+        let a = self.registers.a;
+        let carry = self.registers.get_c() as u8;
+        let result = a.wrapping_sub(value).wrapping_sub(carry);
+        self.registers.set_z(result == 0);
+        self.registers.set_n(true);
+        self.registers.set_h((a & 0x0F) < ((value & 0x0F) + carry));
+        self.registers.set_c((a as u16) < (value as u16 + carry as u16));
+        self.registers.a = result;
     }
 
     fn sub_a_r8(&mut self, value: u8) {
