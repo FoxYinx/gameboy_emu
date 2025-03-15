@@ -313,7 +313,7 @@ impl Cpu {
             }
             0x18 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
-                self.jump_relatif(memory);
+                self.jump_relative(memory);
                 (false, 12)
             }
             0x19 => {
@@ -381,7 +381,7 @@ impl Cpu {
             0x20 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if !self.registers.get_z() {
-                    self.jump_relatif(memory);
+                    self.jump_relative(memory);
                     (false, 12)
                 } else {
                     (false, 8)
@@ -470,7 +470,7 @@ impl Cpu {
             0x28 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if self.registers.get_z() {
-                    self.jump_relatif(memory);
+                    self.jump_relative(memory);
                     (false, 12)
                 } else {
                     (false, 8)
@@ -540,7 +540,7 @@ impl Cpu {
             0x30 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if !self.registers.get_c() {
-                    self.jump_relatif(memory);
+                    self.jump_relative(memory);
                     (false, 12)
                 } else {
                     (false, 8)
@@ -630,7 +630,7 @@ impl Cpu {
             0x38 => {
                 self.registers.pc = self.registers.pc.wrapping_add(1);
                 if self.registers.get_c() {
-                    self.jump_relatif(memory);
+                    self.jump_relative(memory);
                     (false, 12)
                 } else {
                     (false, 8)
@@ -1724,54 +1724,16 @@ impl Cpu {
             }
             0xC2 => {
                 if !self.registers.get_z() {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(low) = memory.get(self.registers.pc as usize) {
-                        self.registers.pc = self.registers.pc.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.pc as usize) {
-                            let address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = address;
-                            (true, 16)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of jump address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 12)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 12)
-                    }
+                    self.jump_absolute(memory);
+                    (true, 16)
                 } else {
                     self.registers.pc = self.registers.pc.wrapping_add(2);
                     (false, 12)
                 }
             }
             0xC3 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.pc as usize) {
-                        let address = ((*high as u16) << 8) | *low as u16;
-                        self.registers.pc = address;
-                        (true, 16)
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 16)
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of jump address at PC {:#06X}",
-                        self.registers.pc
-                    );
-                    (false, 16)
-                }
+                self.jump_absolute(memory);
+                (true, 16)
             }
             0xC4 => {
                 if !self.registers.get_z() {
@@ -1895,27 +1857,8 @@ impl Cpu {
             }
             0xCA => {
                 if self.registers.get_z() {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(low) = memory.get(self.registers.pc as usize) {
-                        self.registers.pc = self.registers.pc.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.pc as usize) {
-                            let address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = address;
-                            (true, 16)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of jump address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 12)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 12)
-                    }
+                    self.jump_absolute(memory);
+                    (true, 16)
                 } else {
                     self.registers.pc = self.registers.pc.wrapping_add(2);
                     (false, 12)
@@ -2081,27 +2024,8 @@ impl Cpu {
             }
             0xD2 => {
                 if !self.registers.get_c() {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(low) = memory.get(self.registers.pc as usize) {
-                        self.registers.pc = self.registers.pc.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.pc as usize) {
-                            let address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = address;
-                            (true, 16)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of jump address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 12)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 12)
-                    }
+                    self.jump_absolute(memory);
+                    (true, 16)
                 } else {
                     self.registers.pc = self.registers.pc.wrapping_add(2);
                     (false, 12)
@@ -2235,27 +2159,8 @@ impl Cpu {
             }
             0xDA => {
                 if self.registers.get_c() {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(low) = memory.get(self.registers.pc as usize) {
-                        self.registers.pc = self.registers.pc.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.pc as usize) {
-                            let address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = address;
-                            (true, 16)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of jump address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 12)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 12)
-                    }
+                    self.jump_absolute(memory);
+                    (true, 16)
                 } else {
                     self.registers.pc = self.registers.pc.wrapping_add(2);
                     (false, 12)
@@ -2674,7 +2579,28 @@ impl Cpu {
         }
     }
 
-    fn jump_relatif(&mut self, memory: &mut Memory) {
+    fn jump_absolute(&mut self, memory: &mut Memory) {
+        self.registers.pc = self.registers.pc.wrapping_add(1);
+        if let Some(low) = memory.get(self.registers.pc as usize) {
+            self.registers.pc = self.registers.pc.wrapping_add(1);
+            if let Some(high) = memory.get(self.registers.pc as usize) {
+                let address = ((*high as u16) << 8) | *low as u16;
+                self.registers.pc = address;
+            } else {
+                eprintln!(
+                    "Failed to get high value of jump address at PC {:#06X}",
+                    self.registers.pc
+                );
+            }
+        } else {
+            eprintln!(
+                "Failed to get low value of jump address at PC {:#06X}",
+                self.registers.pc
+            );
+        }
+    }
+
+    fn jump_relative(&mut self, memory: &mut Memory) {
         if let Some(offset) = memory.get(self.registers.pc as usize) {
             self.registers.pc = self.registers.pc.wrapping_add_signed(*offset as i8 as i16);
         } else {
