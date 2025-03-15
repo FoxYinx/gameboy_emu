@@ -1043,27 +1043,8 @@ impl Cpu {
             }
             0xC0 => {
                 if !self.registers.get_z() {
-                    if let Some(low) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.sp as usize) {
-                            self.registers.sp = self.registers.sp.wrapping_add(1);
-                            let return_address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = return_address;
-                            (true, 20)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of return address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 8)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 8)
-                    }
+                    self.ret(memory);
+                    (true, 20)
                 } else {
                     (false, 8)
                 }
@@ -1168,53 +1149,15 @@ impl Cpu {
             }
             0xC8 => {
                 if self.registers.get_z() {
-                    if let Some(low) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.sp as usize) {
-                            self.registers.sp = self.registers.sp.wrapping_add(1);
-                            let return_address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = return_address;
-                            (true, 20)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of return address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 8)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 8)
-                    }
+                    self.ret(memory);
+                    (true, 20)
                 } else {
                     (false, 8)
                 }
             }
             0xC9 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        let return_address = ((*high as u16) << 8) | *low as u16;
-                        self.registers.pc = return_address;
-                        (true, 16)
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 16)
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of return address at PC {:#06X}",
-                        self.registers.pc
-                    );
-                    (false, 16)
-                }
+                self.ret(memory);
+                (true, 16)
             }
             0xCA => {
                 if self.registers.get_z() {
@@ -1324,27 +1267,8 @@ impl Cpu {
             }
             0xD0 => {
                 if !self.registers.get_c() {
-                    if let Some(low) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.sp as usize) {
-                            self.registers.sp = self.registers.sp.wrapping_add(1);
-                            let return_address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = return_address;
-                            (true, 20)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of return address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 8)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 8)
-                    }
+                    self.ret(memory);
+                    (true, 20)
                 } else {
                     (false, 8)
                 }
@@ -1450,54 +1374,16 @@ impl Cpu {
             }
             0xD8 => {
                 if self.registers.get_c() {
-                    if let Some(low) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        if let Some(high) = memory.get(self.registers.sp as usize) {
-                            self.registers.sp = self.registers.sp.wrapping_add(1);
-                            let return_address = ((*high as u16) << 8) | *low as u16;
-                            self.registers.pc = return_address;
-                            (true, 20)
-                        } else {
-                            eprintln!(
-                                "Failed to get high value of return address at PC {:#06X}",
-                                self.registers.pc
-                            );
-                            (false, 8)
-                        }
-                    } else {
-                        eprintln!(
-                            "Failed to get low value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 8)
-                    }
+                    self.ret(memory);
+                    (true, 20)
                 } else {
                     (false, 8)
                 }
             }
             0xD9 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        let return_address = ((*high as u16) << 8) | *low as u16;
-                        self.registers.pc = return_address;
-                        self.ime_pending = 1;
-                        (true, 16)
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of return address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                        (false, 16)
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of return address at PC {:#06X}",
-                        self.registers.pc
-                    );
-                    (false, 16)
-                }
+                self.ret(memory);
+                self.ime_pending = 1;
+                (true, 16)
             }
             0xDA => {
                 if self.registers.get_c() {
@@ -2037,6 +1923,27 @@ impl Cpu {
         } else {
             eprintln!(
                 "Failed to get low value of immediate at PC {:#06X}",
+                self.registers.pc
+            );
+        }
+    }
+    
+    fn ret(&mut self, memory: &mut Memory) {
+        if let Some(low) = memory.get(self.registers.sp as usize) {
+            self.registers.sp = self.registers.sp.wrapping_add(1);
+            if let Some(high) = memory.get(self.registers.sp as usize) {
+                self.registers.sp = self.registers.sp.wrapping_add(1);
+                let return_address = ((*high as u16) << 8) | *low as u16;
+                self.registers.pc = return_address;
+            } else {
+                eprintln!(
+                    "Failed to get high value of return address at PC {:#06X}",
+                    self.registers.pc
+                );
+            }
+        } else {
+            eprintln!(
+                "Failed to get low value of return address at PC {:#06X}",
                 self.registers.pc
             );
         }
