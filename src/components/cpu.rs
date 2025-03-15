@@ -3658,7 +3658,7 @@ impl Cpu {
                             }
 
                             self.registers.pc = return_address;
-                            (true, 12)
+                            (true, 20)
                         } else {
                             eprintln!(
                                 "Failed to get high value of return address at PC {:#06X}",
