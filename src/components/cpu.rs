@@ -1006,77 +1006,39 @@ impl Cpu {
                 (false, 4)
             }
             0xB8 => {
-                self.registers.set_z(self.registers.a == self.registers.b);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.b & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.b);
-
+                self.cp_a_r8(self.registers.b);
                 (false, 4)
             }
             0xB9 => {
-                self.registers.set_z(self.registers.a == self.registers.c);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.c & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.c);
-
+                self.cp_a_r8(self.registers.c);
                 (false, 4)
             }
             0xBA => {
-                self.registers.set_z(self.registers.a == self.registers.d);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.d & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.d);
-
+                self.cp_a_r8(self.registers.d);
                 (false, 4)
             }
             0xBB => {
-                self.registers.set_z(self.registers.a == self.registers.e);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.e & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.e);
-
+                self.cp_a_r8(self.registers.e);
                 (false, 4)
             }
             0xBC => {
-                self.registers.set_z(self.registers.a == self.registers.h);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.h & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.h);
-
+                self.cp_a_r8(self.registers.h);
                 (false, 4)
             }
             0xBD => {
-                self.registers.set_z(self.registers.a == self.registers.l);
-                self.registers.set_n(true);
-                self.registers
-                    .set_h((self.registers.a & 0x0F) < (self.registers.l & 0x0F));
-                self.registers.set_c(self.registers.a < self.registers.l);
-
+                self.cp_a_r8(self.registers.l);
                 (false, 4)
             }
             0xBE => {
                 if let Some(value) = memory.get(self.registers.get_hl() as usize) {
-                    self.registers.set_z(self.registers.a == *value);
-                    self.registers.set_n(true);
-                    self.registers
-                        .set_h((self.registers.a & 0x0F) < (*value & 0x0F));
-                    self.registers.set_c(self.registers.a < *value);
+                    self.cp_a_r8(*value);
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
                 (false, 8)
             }
             0xBF => {
-                self.registers.set_z(true);
-                self.registers.set_n(true);
-                self.registers.set_h(false);
-                self.registers.set_c(false);
-
+                self.cp_a_r8(self.registers.a);
                 (false, 4)
             }
             0xC0 => {
@@ -1982,6 +1944,14 @@ impl Cpu {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn cp_a_r8(&mut self, value: u8) {
+        let a = self.registers.a;
+        self.registers.set_z(a == value);
+        self.registers.set_n(true);
+        self.registers.set_h((a & 0x0F) < (value & 0x0F));
+        self.registers.set_c(a < value);
     }
 
     fn or_a_r8(&mut self, value: u8) {
