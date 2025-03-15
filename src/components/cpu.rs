@@ -1050,23 +1050,8 @@ impl Cpu {
                 }
             }
             0xC1 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        self.registers.set_bc(((*high as u16) << 8) | *low as u16);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of jump address at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                let value = self.pop(memory);
+                self.registers.set_bc(value);
                 (false, 12)
             }
             0xC2 => {
@@ -1189,23 +1174,8 @@ impl Cpu {
                 }
             }
             0xD1 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        self.registers.set_de(((*high as u16) << 8) | *low as u16);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of jump address at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of jump address at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                let value = self.pop(memory);
+                self.registers.set_de(value);
                 (false, 12)
             }
             0xD2 => {
@@ -1326,23 +1296,8 @@ impl Cpu {
                 (false, 12)
             }
             0xE1 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        self.registers.set_hl(((*high as u16) << 8) | *low as u16);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of pop at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of pop at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                let value = self.pop(memory);
+                self.registers.set_hl(value);
                 (false, 12)
             }
             0xE2 => {
@@ -1479,23 +1434,9 @@ impl Cpu {
                 (false, 12)
             }
             0xF1 => {
-                if let Some(low) = memory.get(self.registers.sp as usize) {
-                    self.registers.sp = self.registers.sp.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.sp as usize) {
-                        self.registers.sp = self.registers.sp.wrapping_add(1);
-                        self.registers.set_af(((*high as u16) << 8) | *low as u16);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of pop at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of pop at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                let value = self.pop(memory);
+                self.registers.set_af(value);
+                self.registers.f &= 0xF0;
                 (false, 12)
             }
             0xF2 => {
@@ -1769,6 +1710,14 @@ impl Cpu {
                 self.registers.pc
             );
         }
+    }
+
+    fn pop(&mut self, memory: &Memory) -> u16 {
+        let low = memory.get(self.registers.sp as usize).expect("Failed to get low value of pop");
+        self.registers.sp = self.registers.sp.wrapping_add(1);
+        let high = memory.get(self.registers.sp as usize).expect("Failed to get high value of pop");
+        self.registers.sp = self.registers.sp.wrapping_add(1);
+        u16::from_le_bytes([*low, *high])
     }
 
     fn push(&mut self, r16: u16, memory: &mut Memory) {
