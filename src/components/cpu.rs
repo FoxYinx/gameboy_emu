@@ -99,24 +99,7 @@ impl Cpu {
                 (false, 4)
             }
             0x01 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.pc as usize) {
-                        let immediate = ((*high as u16) << 8) | *low as u16;
-                        self.registers.set_bc(immediate);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of immediate at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of immediate at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.ld_r16_n16(memory, opcode);
                 (false, 12)
             }
             0x02 => {
@@ -246,24 +229,7 @@ impl Cpu {
                 panic!("STOP");
             }
             0x11 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.pc as usize) {
-                        let immediate = ((*high as u16) << 8) | *low as u16;
-                        self.registers.set_de(immediate);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of immediate at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of immediate at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.ld_r16_n16(memory, opcode);
                 (false, 12)
             }
             0x12 => {
@@ -388,24 +354,7 @@ impl Cpu {
                 }
             }
             0x21 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.pc as usize) {
-                        let immediate = ((*high as u16) << 8) | *low as u16;
-                        self.registers.set_hl(immediate);
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of immediate at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of immediate at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.ld_r16_n16(memory, opcode);
                 (false, 12)
             }
             0x22 => {
@@ -547,25 +496,7 @@ impl Cpu {
                 }
             }
             0x31 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(low) = memory.get(self.registers.pc as usize) {
-                    self.registers.pc = self.registers.pc.wrapping_add(1);
-                    if let Some(high) = memory.get(self.registers.pc as usize) {
-                        let immediate = ((*high as u16) << 8) | *low as u16;
-
-                        self.registers.sp = immediate;
-                    } else {
-                        eprintln!(
-                            "Failed to get high value of immediate at PC {:#06X}",
-                            self.registers.pc
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Failed to get low value of immediate at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.ld_r16_n16(memory, opcode);
                 (false, 12)
             }
             0x32 => {
@@ -2576,6 +2507,33 @@ impl Cpu {
                 self.registers.pc = 0x0038;
                 (true, 16)
             }
+        }
+    }
+
+    fn ld_r16_n16(&mut self, memory: &mut Memory, opcode: u8) {
+        self.registers.pc = self.registers.pc.wrapping_add(1);
+        if let Some(low) = memory.get(self.registers.pc as usize) {
+            self.registers.pc = self.registers.pc.wrapping_add(1);
+            if let Some(high) = memory.get(self.registers.pc as usize) {
+                let immediate = ((*high as u16) << 8) | *low as u16;
+                match (opcode & 0x30) >> 4 {
+                    0 => self.registers.set_bc(immediate),
+                    1 => self.registers.set_de(immediate),
+                    2 => self.registers.set_hl(immediate),
+                    3 => self.registers.sp = immediate,
+                    _ => unreachable!()
+                }
+            } else {
+                eprintln!(
+                    "Failed to get high value of immediate at PC {:#06X}",
+                    self.registers.pc
+                );
+            }
+        } else {
+            eprintln!(
+                "Failed to get low value of immediate at PC {:#06X}",
+                self.registers.pc
+            );
         }
     }
 
