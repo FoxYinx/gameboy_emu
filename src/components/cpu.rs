@@ -67,6 +67,7 @@ impl Cpu {
         }
     }
 
+    #[allow(unreachable_patterns)]
     pub(crate) fn process_opcode(&mut self, opcode: u8, memory: &mut Memory) -> (bool, u64) {
         if self.debug_registers {
             println!(
@@ -2507,6 +2508,7 @@ impl Cpu {
                 self.registers.pc = 0x0038;
                 (true, 16)
             }
+            _ => unreachable!()
         }
     }
 
