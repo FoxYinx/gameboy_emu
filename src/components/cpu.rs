@@ -119,12 +119,7 @@ impl Cpu {
                 (false, 4)
             }
             0x06 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.b = *imm8;
-                } else {
-                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
-                }
+                self.registers.b = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x07 => {
@@ -184,12 +179,7 @@ impl Cpu {
                 (false, 4)
             }
             0x0E => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.c = *imm8;
-                } else {
-                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
-                }
+                self.registers.c = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x0F => {
@@ -226,12 +216,7 @@ impl Cpu {
                 (false, 4)
             }
             0x16 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.d = *imm8;
-                } else {
-                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
-                }
+                self.registers.d = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x17 => {
@@ -276,15 +261,7 @@ impl Cpu {
                 (false, 4)
             }
             0x1E => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.e = *imm8;
-                } else {
-                    eprintln!(
-                        "Failed to read immediate value at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.registers.e = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x1F => {
@@ -330,12 +307,7 @@ impl Cpu {
                 (false, 4)
             }
             0x26 => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.h = *imm8;
-                } else {
-                    eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
-                }
+                self.registers.h = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x27 => {
@@ -398,15 +370,7 @@ impl Cpu {
                 (false, 4)
             }
             0x2E => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.l = *imm8;
-                } else {
-                    eprintln!(
-                        "Failed to read immediate value at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.registers.l = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x2F => {
@@ -517,15 +481,7 @@ impl Cpu {
                 (false, 4)
             }
             0x3E => {
-                self.registers.pc = self.registers.pc.wrapping_add(1);
-                if let Some(imm8) = memory.get(self.registers.pc as usize) {
-                    self.registers.a = *imm8;
-                } else {
-                    eprintln!(
-                        "Failed to read immediate value at PC {:#06X}",
-                        self.registers.pc
-                    );
-                }
+                self.registers.a = self.ld_r8_n8(memory);
                 (false, 8)
             }
             0x3F => {
@@ -2455,6 +2411,16 @@ impl Cpu {
                 (true, 16)
             }
             _ => unreachable!(),
+        }
+    }
+
+    fn ld_r8_n8(&mut self, memory: &mut Memory) -> u8 {
+        self.registers.pc = self.registers.pc.wrapping_add(1);
+        if let Some(n8) = memory.get(self.registers.pc as usize) {
+            *n8
+        } else {
+            eprintln!("Failed to get imm8 at PC {:#06X}", self.registers.pc);
+            0
         }
     }
 
