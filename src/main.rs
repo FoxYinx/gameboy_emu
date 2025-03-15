@@ -9,7 +9,7 @@ fn main() {
     //gameboy.toggle_debug_instructions();
     //gameboy.toggle_debug_registers();
     gameboy.cartridge_to_rom(String::from(
-        "resources/roms/blargg/mem_timing/individual/03-modify_timing.gb",
+        "resources/roms/blargg/cpu_instrs/individual/11-op a,(hl).gb",
     ));
     gameboy.start(None);
 }
