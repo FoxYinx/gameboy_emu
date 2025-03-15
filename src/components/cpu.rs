@@ -1092,13 +1092,7 @@ impl Cpu {
                 }
             }
             0xC5 => {
-                let bc = self.registers.get_bc();
-                let low = bc as u8;
-                let high = (bc >> 8) as u8;
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, high);
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, low);
+                self.push(self.registers.get_bc(), memory);
                 (false, 16)
             }
             0xC6 => {
@@ -1239,13 +1233,7 @@ impl Cpu {
                 }
             }
             0xD5 => {
-                let de = self.registers.get_de();
-                let low = de as u8;
-                let high = (de >> 8) as u8;
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, high);
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, low);
+                self.push(self.registers.get_de(), memory);
                 (false, 16)
             }
             0xD6 => {
@@ -1375,13 +1363,7 @@ impl Cpu {
                 );
             }
             0xE5 => {
-                let hl = self.registers.get_hl();
-                let low = hl as u8;
-                let high = (hl >> 8) as u8;
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, high);
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, low);
+                self.push(self.registers.get_hl(), memory);
                 (false, 16)
             }
             0xE6 => {
@@ -1538,13 +1520,7 @@ impl Cpu {
                 );
             }
             0xF5 => {
-                let af = self.registers.get_af();
-                let low = af as u8;
-                let high = (af >> 8) as u8;
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, high);
-                self.registers.sp = self.registers.sp.wrapping_sub(1);
-                memory.write_memory(self.registers.sp as usize, low);
+                self.push(self.registers.get_af(), memory);
                 (false, 16)
             }
             0xF6 => {
@@ -1794,7 +1770,16 @@ impl Cpu {
             );
         }
     }
-    
+
+    fn push(&mut self, r16: u16, memory: &mut Memory) {
+        let low = r16 as u8;
+        let high = (r16 >> 8) as u8;
+        self.registers.sp = self.registers.sp.wrapping_sub(1);
+        memory.write_memory(self.registers.sp as usize, high);
+        self.registers.sp = self.registers.sp.wrapping_sub(1);
+        memory.write_memory(self.registers.sp as usize, low);
+    }
+
     fn call(&mut self, memory: &mut Memory) {
         self.registers.pc = self.registers.pc.wrapping_add(1);
         if let Some(low) = memory.get(self.registers.pc as usize) {
@@ -1823,7 +1808,7 @@ impl Cpu {
             );
         }
     }
-    
+
     fn ret(&mut self, memory: &mut Memory) {
         if let Some(low) = memory.get(self.registers.sp as usize) {
             self.registers.sp = self.registers.sp.wrapping_add(1);
