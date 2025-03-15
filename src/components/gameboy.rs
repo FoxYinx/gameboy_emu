@@ -188,7 +188,7 @@ mod tests {
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
-    
+
     #[test]
     fn rom_11_op_a_hl() {
         let mut gameboy = Gameboy::new();
