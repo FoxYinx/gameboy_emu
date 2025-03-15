@@ -3365,7 +3365,7 @@ impl Cpu {
                 } else {
                     eprintln!("Failed to get value at HL {:#06X}", self.registers.get_hl());
                 }
-                (false, 4)
+                (false, 8)
             }
             0xBF => {
                 self.registers.set_z(true);
