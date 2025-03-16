@@ -1,17 +1,25 @@
-use crate::components::cpu::Cpu;
+use crate::components::cpu::CPU;
 use crate::components::memory::Memory;
+use crate::components::ppu::PPU;
 use crate::io;
 
+const WIDTH: u32 = 160;
+const HEIGHT: u32 = 144;
+
 pub struct Gameboy {
-    cpu: Cpu,
+    cpu: CPU,
+    ppu: PPU,
     memory: Memory,
+    framebuffer: [u32; (WIDTH * HEIGHT) as usize]
 }
 
 impl Gameboy {
     pub fn new() -> Self {
         Gameboy {
-            cpu: Cpu::new(),
+            cpu: CPU::new(),
+            ppu: PPU::new(),
             memory: Memory::new(),
+            framebuffer: [0; (WIDTH * HEIGHT) as usize]
         }
     }
 

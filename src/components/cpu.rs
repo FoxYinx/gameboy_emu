@@ -1,7 +1,7 @@
 use crate::components::memory::Memory;
 use crate::components::registers::Registers;
 
-pub struct Cpu {
+pub struct CPU {
     pub(crate) registers: Registers,
     debug_registers: bool,
     pub(crate) ime: bool,
@@ -9,9 +9,9 @@ pub struct Cpu {
     pub(crate) halted: bool,
 }
 
-impl Cpu {
+impl CPU {
     pub fn new() -> Self {
-        Cpu {
+        CPU {
             registers: Registers::default(),
             debug_registers: false,
             ime: false,
