@@ -3,14 +3,10 @@ use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
 use crate::io;
 
-const WIDTH: u32 = 160;
-const HEIGHT: u32 = 144;
-
 pub struct Gameboy {
     cpu: CPU,
-    ppu: PPU,
-    memory: Memory,
-    framebuffer: [u32; (WIDTH * HEIGHT) as usize]
+    pub(crate) ppu: PPU,
+    memory: Memory
 }
 
 impl Gameboy {
@@ -18,8 +14,7 @@ impl Gameboy {
         Gameboy {
             cpu: CPU::new(),
             ppu: PPU::new(),
-            memory: Memory::new(),
-            framebuffer: [0; (WIDTH * HEIGHT) as usize]
+            memory: Memory::new()
         }
     }
 
@@ -41,7 +36,7 @@ impl Gameboy {
         self.cpu.toggle_debug_registers();
     }
 
-    pub fn start(&mut self, test: Option<u64>) {
+    fn start(&mut self, test: Option<u64>) {
         if let Some(iterations) = test {
             for _i in 0..iterations {
                 self.execute_cycle();
@@ -53,7 +48,9 @@ impl Gameboy {
         }
     }
 
-    fn execute_cycle(&mut self) {
+    pub(crate) fn execute_cycle(&mut self) {
+        self.ppu.render_test_pattern();
+        
         if self.cpu.halted {
             self.memory.update_timer(4);
 
