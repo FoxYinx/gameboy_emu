@@ -49,6 +49,7 @@ impl Gameboy {
     }
 
     pub(crate) fn execute_cycle(&mut self) {
+        #[cfg(not(test))]
         self.ppu.render_test_pattern();
         
         if self.cpu.halted {
