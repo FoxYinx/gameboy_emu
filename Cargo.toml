@@ -9,6 +9,5 @@ lto = "fat"
 panic = "abort"
 
 [dependencies]
-wgpu = "24.0.1"
-eframe = "0.31.1"
-pollster = "0.4.0"
+pixels = "0.15.0"
+winit = "0.29.15"

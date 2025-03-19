@@ -1,24 +1,24 @@
 use crate::components::gameboy::Gameboy;
-use eframe::egui::Context;
-use eframe::{egui, Frame};
+use pixels::{Pixels, SurfaceTexture};
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
+use winit::window::Window;
 
-pub const WIDTH: usize = 160;
-pub const HEIGHT: usize = 144;
+pub const WIDTH: u32 = 160;
+pub const HEIGHT: u32 = 144;
 
-pub struct EmulatorApp {
-    pixels: Vec<u8>,
-    texture: Option<egui::TextureHandle>,
-    rx: Receiver<Vec<u8>>
+pub struct EmulatorApp<'a> {
+    pixels: Pixels<'a>,
+    rx: Receiver<Vec<u8>>,
+    _window: &'a Window
 }
 
-impl EmulatorApp {
-    pub(crate) fn new(cc: &eframe::CreationContext<'_>, rom_path: String) -> Self {
+impl<'a> EmulatorApp<'a> {
+    pub(crate) fn new(window: &'a Window, rom_path: &str) -> Self {
         let mut gameboy = Gameboy::new();
-        gameboy.cartridge_to_rom(rom_path);
+        gameboy.cartridge_to_rom(rom_path.to_string());
 
         let (tx, rx) = mpsc::channel();
 
@@ -27,46 +27,35 @@ impl EmulatorApp {
                 for _ in 0..70224 {
                     gameboy.execute_cycle();
                 }
-                let mut pixels = vec![0; WIDTH * HEIGHT * 4];
+
+                let mut pixels = vec![0; (WIDTH * HEIGHT * 4) as usize];
                 gameboy.ppu.copy_to_framebuffer(&mut pixels);
-                tx.send(pixels).expect("Failed to send pixels");
+
+                if tx.send(pixels).is_err() {
+                    break;
+                }
                 thread::sleep(Duration::from_millis(16));
             }
         });
 
+        let surface_texture = SurfaceTexture::new(WIDTH, HEIGHT, window);
+        let pixels = Pixels::new(WIDTH, HEIGHT, surface_texture)
+            .expect("Failed to create pixels context");
+
         Self {
-            pixels: vec![0; WIDTH * HEIGHT * 4],
-            texture: None,
-            rx
+            pixels,
+            rx,
+            _window: window
         }
     }
-}
 
-impl eframe::App for EmulatorApp {
-    fn update(&mut self, ctx: &Context, frame: &mut Frame) {
+    pub fn update(&mut self) {
         if let Ok(new_pixels) = self.rx.try_recv() {
-            self.pixels = new_pixels;
-
-            if let Some(texture) = &mut self.texture {
-                texture.set(
-                    egui::ColorImage::from_rgba_unmultiplied([WIDTH, HEIGHT], &self.pixels),
-                    Default::default(),
-                );
-            } else {
-                self.texture = Some(ctx.load_texture(
-                    "gameboy-screen",
-                    egui::ColorImage::from_rgba_unmultiplied([WIDTH, HEIGHT], &self.pixels),
-                    Default::default(),
-                ));
-            }
+            self.pixels.frame_mut().copy_from_slice(&new_pixels);
         }
-        
-        egui::CentralPanel::default().show(ctx, |ui| {
-            if let Some(texture) = &self.texture {
-                let size = texture.size_vec2();
-                let sized_texture = egui::load::SizedTexture::new(texture, size);
-                ui.add(egui::Image::new(sized_texture).fit_to_exact_size(size));
-            }
-        });
+    }
+
+    pub fn render(&mut self) -> Result<(), pixels::Error> {
+        self.pixels.render()
     }
 }

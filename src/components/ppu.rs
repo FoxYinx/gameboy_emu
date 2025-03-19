@@ -10,7 +10,7 @@ enum PpuMode {
 
 pub struct PPU {
     mode: PpuMode,
-    pub framebuffer: [u8; WIDTH * HEIGHT * 4],
+    pub framebuffer: [u8; (WIDTH * HEIGHT * 4) as usize],
     line: u8,
     mode_clock: u32
 }
@@ -19,7 +19,7 @@ impl PPU {
     pub fn new() -> Self {
         PPU {
             mode: OamSearch,
-            framebuffer: [0; WIDTH * HEIGHT * 4],
+            framebuffer: [0; (WIDTH * HEIGHT * 4) as usize],
             line: 0,
             mode_clock: 0
         }
@@ -32,7 +32,7 @@ impl PPU {
     pub fn render_test_pattern(&mut self) {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                let idx = (y * 160 + x) * 4;
+                let idx = ((y * 160 + x) * 4) as usize;
                 self.framebuffer[idx] = x as u8;     // R
                 self.framebuffer[idx + 1] = y as u8; // G
                 self.framebuffer[idx + 2] = 0x7F;    // B
