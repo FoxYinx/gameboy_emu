@@ -21,6 +21,10 @@ impl Memory {
         self.memory.get(index)
     }
 
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut u8> {
+        self.memory.get_mut(index)
+    }
+
     pub fn write_memory(&mut self, address: usize, value: u8) {
         match address {
             0xC000..=0xDDFF => {

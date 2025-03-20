@@ -49,9 +49,6 @@ impl Gameboy {
     }
 
     pub(crate) fn execute_cycle(&mut self) {
-        #[cfg(not(test))]
-        self.ppu.render_test_pattern();
-        
         if self.cpu.halted {
             self.memory.update_timer(4);
 
@@ -73,8 +70,9 @@ impl Gameboy {
             if !jumped {
                 self.cpu.registers.pc = self.cpu.registers.pc.wrapping_add(1);
             }
-
             self.cpu.check_interrupts(&mut self.memory);
+
+            self.ppu.step(cycles, &mut self.memory);
         } else {
             panic!("Tried to access address outside of ROM");
         }
