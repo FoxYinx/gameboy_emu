@@ -109,10 +109,13 @@ impl PPU {
         
         let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
         let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
+
+        let scy = memory.get(0xFF42).copied().unwrap_or(0);
+        let scx = memory.get(0xFF43).copied().unwrap_or(0);
         
         for x in 0..WIDTH {
-            let tile_x = (x as u16) / 8;
-            let tile_y = (self.line as u16) / 8;
+            let tile_x = ((x as u8).wrapping_add(scx) as u16) / 8;
+            let tile_y = (self.line.wrapping_add(scy) as u16) / 8;
             let tile_address = bg_tile_map + tile_y * 32 + tile_x;
             let tile_num = memory.get(tile_address as usize).copied().unwrap_or(0) as u16;
             
