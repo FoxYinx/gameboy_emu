@@ -107,7 +107,9 @@ impl PPU {
             return;
         }
 
-        let bg_window_enable = (lcdc & 0x01) == 1;
+        let bg_window_enable = (lcdc & 0x01) != 0;
+        let obj_enable = (lcdc & 0x02) != 0;
+        let obj_size = (lcdc & 0x04) != 0;
         
         let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
         let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
@@ -153,6 +155,74 @@ impl PPU {
             self.framebuffer[index + 1] = color;
             self.framebuffer[index + 2] = color;
             self.framebuffer[index + 3] = 0xFF;
+
+            if obj_enable {
+                let mut sprites: Vec<(u8, u8, u8, u8)> = Vec::new();
+                let sprite_height = if obj_size {16} else {8};
+                for i in 0..40 {
+                    let sprite_index = i * 4;
+                    let y_pos = memory.get(0xFE00 + sprite_index).copied().unwrap_or(0);
+                    let x_pos = memory.get(0xFE01 + sprite_index).copied().unwrap_or(0);
+                    let mut tile_num = memory.get(0xFE02 + sprite_index).copied().unwrap_or(0);
+                    let attributes = memory.get(0xFE03 + sprite_index).copied().unwrap_or(0);
+
+                    if obj_size {
+                        tile_num &= 0xFE;
+                    }
+
+                    if self.line >= y_pos.wrapping_sub(16) && self.line < y_pos.wrapping_sub(16).wrapping_add(sprite_height) {
+                        sprites.push((x_pos, y_pos, tile_num, attributes));
+                    }
+                }
+
+                sprites.sort_by_key(|&(x_pos, _, _, _)| x_pos);
+
+                for &(x_pos, y_pos, tile_num, attributes) in sprites.iter().take(10) {
+                    let row = if attributes & 0x40 != 0 {
+                        sprite_height - 1 - (self.line.wrapping_sub(y_pos.wrapping_sub(16)))
+                    } else {
+                        self.line.wrapping_sub(y_pos.wrapping_sub(16))
+                    } as u16 * 2;
+
+                    let tile_data_address = 0x8000 + (tile_num as u16 * 16) + row;
+                    let byte1 = memory.get(tile_data_address as usize).copied().unwrap_or(0);
+                    let byte2 = memory.get(tile_data_address as usize + 1).copied().unwrap_or(0);
+
+                    for x in 0..8 {
+                        let bit_index = if attributes & 0x20 != 0 {x} else {7 - x};
+                        let color_bit_high = (byte1 >> bit_index) & 1;
+                        let color_bit_low = (byte2 >> bit_index) & 1;
+                        let color_id = (color_bit_high << 1) | color_bit_low;
+
+                        if color_id == 0 {
+                            continue;
+                        }
+
+                        let obp = if attributes & 0x10 != 0 {
+                            memory.get(0xFF49).copied().unwrap_or(0)
+                        } else {
+                            memory.get(0xFF48).copied().unwrap_or(0)
+                        };
+
+                        let color = match (obp >> (color_id * 2)) & 0b11 {
+                            0 => 0xFF,
+                            1 => 0x55,
+                            2 => 0xAA,
+                            3 => 0x00,
+                            _ => 0xFF,
+                        };
+
+                        let pixel_x = x_pos.wrapping_sub(8).wrapping_add(x as u8);
+                        if pixel_x < WIDTH as u8 {
+                            let index = (self.line as usize * WIDTH as usize + pixel_x as usize) * 4;
+                            self.framebuffer[index] = color;
+                            self.framebuffer[index + 1] = color;
+                            self.framebuffer[index + 2] = color;
+                            self.framebuffer[index + 3] = 0xFF;
+                        }
+                    }
+                }
+            }
         }
     }
     
