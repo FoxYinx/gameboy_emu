@@ -137,8 +137,8 @@ impl PPU {
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
             let color = match (bgp >> (color_id * 2)) & 0b11 {
                 0 => 0xFF,
-                1 => 0xAA,
-                2 => 0x55,
+                1 => 0x55,
+                2 => 0xAA,
                 3 => 0x00,
                 _ => 0xFF,
             };
