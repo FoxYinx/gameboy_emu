@@ -106,6 +106,8 @@ impl PPU {
         if (lcdc & 0x80) == 0 {
             return;
         }
+
+        let bg_window_enable = (lcdc & 0x01) == 1;
         
         let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
         let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
@@ -135,13 +137,13 @@ impl PPU {
             let color_id = (color_bit_high << 1) | color_bit_low;
             
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
-            let color = match (bgp >> (color_id * 2)) & 0b11 {
+            let color = if !bg_window_enable {0xFF} else {match (bgp >> (color_id * 2)) & 0b11 {
                 0 => 0xFF,
                 1 => 0x55,
                 2 => 0xAA,
                 3 => 0x00,
                 _ => 0xFF,
-            };
+            }};
             
             let index = (self.line as usize * WIDTH as usize + x as usize) * 4;
             self.framebuffer[index] = color;
