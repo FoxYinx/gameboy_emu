@@ -116,8 +116,11 @@ impl PPU {
         let scx = memory.get(0xFF43).copied().unwrap_or(0);
         
         for x in 0..WIDTH {
-            let tile_x = ((x as u8).wrapping_add(scx) as u16) / 8;
-            let tile_y = (self.line.wrapping_add(scy) as u16) / 8;
+            let pixel_x = (x as u8).wrapping_add(scx);
+            let pixel_y = self.line.wrapping_add(scy);
+
+            let tile_x = (pixel_x as u16) / 8;
+            let tile_y = (pixel_y as u16) / 8;
             let tile_address = bg_tile_map + tile_y * 32 + tile_x;
             let tile_num = memory.get(tile_address as usize).copied().unwrap_or(0) as u16;
             
@@ -131,7 +134,7 @@ impl PPU {
             let byte1 = memory.get(tile_data_address as usize + row as usize).copied().unwrap_or(0);
             let byte2 = memory.get(tile_data_address as usize + row as usize + 1).copied().unwrap_or(0);
 
-            let bit_index = 7 - (x as u16 % 8);
+            let bit_index = 7 - (pixel_x as u16 % 8);
             let color_bit_high = (byte1 >> bit_index) & 1;
             let color_bit_low = (byte2 >> bit_index) & 1;
             let color_id = (color_bit_high << 1) | color_bit_low;
