@@ -215,10 +215,13 @@ impl PPU {
                         let pixel_x = x_pos.wrapping_sub(8).wrapping_add(x as u8);
                         if pixel_x < WIDTH as u8 {
                             let index = (self.line as usize * WIDTH as usize + pixel_x as usize) * 4;
-                            self.framebuffer[index] = color;
-                            self.framebuffer[index + 1] = color;
-                            self.framebuffer[index + 2] = color;
-                            self.framebuffer[index + 3] = 0xFF;
+
+                            if (attributes & 0x80) == 0 || self.framebuffer[index] == 0xFF {
+                                self.framebuffer[index] = color;
+                                self.framebuffer[index + 1] = color;
+                                self.framebuffer[index + 2] = color;
+                                self.framebuffer[index + 3] = 0xFF;
+                            }
                         }
                     }
                 }
