@@ -110,20 +110,31 @@ impl PPU {
         let bg_window_enable = (lcdc & 0x01) != 0;
         let obj_enable = (lcdc & 0x02) != 0;
         let obj_size = (lcdc & 0x04) != 0;
+        let window_enable = (lcdc & 0x20) != 0;
         
         let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
+        let window_tile_map = if (lcdc & 0x40) != 0 {0x9C00} else {0x9800};
         let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
 
         let scy = memory.get(0xFF42).copied().unwrap_or(0);
         let scx = memory.get(0xFF43).copied().unwrap_or(0);
+        let wy = memory.get(0xFF4A).copied().unwrap_or(0);
+        let wx = memory.get(0xFF4B).copied().unwrap_or(0).wrapping_sub(7);
         
         for x in 0..WIDTH {
-            let pixel_x = (x as u8).wrapping_add(scx);
-            let pixel_y = self.line.wrapping_add(scy);
+            let (pixel_x, pixel_y, tile_map) = if window_enable && self.line >= wy && x as u8 >= wx {
+                let pixel_x = (x as u8).wrapping_sub(wx);
+                let pixel_y = self.line.wrapping_sub(wy);
+                (pixel_x, pixel_y, window_tile_map)
+            } else {
+                let pixel_x = (x as u8).wrapping_add(scx);
+                let pixel_y = self.line.wrapping_add(scy);
+                (pixel_x, pixel_y, bg_tile_map)
+            };
 
             let tile_x = (pixel_x as u16) / 8;
             let tile_y = (pixel_y as u16) / 8;
-            let tile_address = bg_tile_map + tile_y * 32 + tile_x;
+            let tile_address = tile_map + tile_y * 32 + tile_x;
             let tile_num = memory.get(tile_address as usize).copied().unwrap_or(0) as u16;
             
             let tile_data_address = if tile_data == 0x8000 {
