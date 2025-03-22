@@ -13,7 +13,8 @@ pub struct PPU {
     mode: PpuMode,
     pub framebuffer: [u8; (WIDTH * HEIGHT * 4) as usize],
     line: u8,
-    mode_clock: u64
+    mode_clock: u64,
+    window_line_counter: u8
 }
 
 impl PPU {
@@ -22,7 +23,8 @@ impl PPU {
             mode: OAMScan,
             framebuffer: [0; (WIDTH * HEIGHT * 4) as usize],
             line: 0,
-            mode_clock: 0
+            mode_clock: 0,
+            window_line_counter: 0
         }
     }
 
@@ -74,6 +76,7 @@ impl PPU {
                         self.update_stat(memory);
                         
                         if self.line > 153 {
+                            self.window_line_counter = 0;
                             self.line = 0;
                             self.mode = OAMScan;
                             memory.write_memory(0xFF44, self.line);
@@ -100,7 +103,7 @@ impl PPU {
             }
         }
     }
-    
+
     fn render_scanline(&mut self, memory: &Memory) {
         let lcdc = memory.get(0xFF40).copied().unwrap_or(0);
         if (lcdc & 0x80) == 0 {
@@ -111,7 +114,7 @@ impl PPU {
         let obj_enable = (lcdc & 0x02) != 0;
         let obj_size = (lcdc & 0x04) != 0;
         let window_enable = (lcdc & 0x20) != 0;
-        
+
         let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
         let window_tile_map = if (lcdc & 0x40) != 0 {0x9C00} else {0x9800};
         let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
@@ -120,11 +123,17 @@ impl PPU {
         let scx = memory.get(0xFF43).copied().unwrap_or(0);
         let wy = memory.get(0xFF4A).copied().unwrap_or(0);
         let wx = memory.get(0xFF4B).copied().unwrap_or(0).wrapping_sub(7);
-        
+
+        let window_visible = window_enable && self.line >= wy;
+
+        if window_visible {
+            self.window_line_counter += 1;
+        }
+
         for x in 0..WIDTH {
-            let (pixel_x, pixel_y, tile_map) = if window_enable && self.line >= wy && x as u8 >= wx {
+            let (pixel_x, pixel_y, tile_map) = if window_visible && x as u8 >= wx {
                 let pixel_x = (x as u8).wrapping_sub(wx);
-                let pixel_y = self.line.wrapping_sub(wy);
+                let pixel_y = self.window_line_counter.wrapping_sub(1);
                 (pixel_x, pixel_y, window_tile_map)
             } else {
                 let pixel_x = (x as u8).wrapping_add(scx);
@@ -136,13 +145,13 @@ impl PPU {
             let tile_y = (pixel_y as u16) / 8;
             let tile_address = tile_map + tile_y * 32 + tile_x;
             let tile_num = memory.get(tile_address as usize).copied().unwrap_or(0) as u16;
-            
+
             let tile_data_address = if tile_data == 0x8000 {
                 tile_data + tile_num * 16
             } else {
-                tile_data + ((tile_num as i8 as i16 + 128) as u16) * 16  
+                tile_data + ((tile_num as i8 as i16 + 128) as u16) * 16
             };
-            
+
             let row = (self.line % 8) as u16 * 2;
             let byte1 = memory.get(tile_data_address as usize + row as usize).copied().unwrap_or(0);
             let byte2 = memory.get(tile_data_address as usize + row as usize + 1).copied().unwrap_or(0);
@@ -151,7 +160,7 @@ impl PPU {
             let color_bit_high = (byte1 >> bit_index) & 1;
             let color_bit_low = (byte2 >> bit_index) & 1;
             let color_id = (color_bit_high << 1) | color_bit_low;
-            
+
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
             let color = if !bg_window_enable {0xFF} else {match (bgp >> (color_id * 2)) & 0b11 {
                 0 => 0xFF,
@@ -160,7 +169,7 @@ impl PPU {
                 3 => 0x00,
                 _ => 0xFF,
             }};
-            
+
             let index = (self.line as usize * WIDTH as usize + x as usize) * 4;
             self.framebuffer[index] = color;
             self.framebuffer[index + 1] = color;
