@@ -177,7 +177,7 @@ impl PPU {
 
                 sprites.sort_by_key(|&(x_pos, _, _, _)| x_pos);
 
-                for &(x_pos, y_pos, tile_num, attributes) in sprites.iter().take(10) {
+                for &(x_pos, y_pos, tile_num, attributes) in sprites.iter().take(10).rev() {
                     let row = if attributes & 0x40 != 0 {
                         sprite_height - 1 - (self.line.wrapping_sub(y_pos.wrapping_sub(16)))
                     } else {
