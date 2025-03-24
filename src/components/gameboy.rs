@@ -2,6 +2,7 @@ use crate::components::cpu::CPU;
 use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
 use crate::io;
+use crate::utils::licensee::old_licensee_code_decryption;
 
 pub struct Gameboy {
     cpu: CPU,
@@ -22,6 +23,28 @@ impl Gameboy {
         println!("Loading ROM: {filename}");
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
         self.memory.write_cartridge(&cartridge_data);
+
+        let title_bytes: Vec<u8> = (0x0134..=0x0143).filter_map(|addr| self.memory.get(addr).copied()).collect();
+        if let Ok(title) = String::from_utf8(title_bytes) {
+            println!("Game Title: {}", title);
+        } else {
+            println!("Failed to read game title.");
+        }
+
+        let manufacturer_bytes: Vec<u8> = (0x013F..=0x0142).filter_map(|addr| self.memory.get(addr).copied()).collect();
+        if let Ok(code) = String::from_utf8(manufacturer_bytes) {
+            println!("Manufacturer Code: {}", code);
+        } else {
+            println!("Failed to read manufacturer code.");
+        }
+
+        let old_licensee_code = self.memory.get(0x014B).unwrap_or(&0);
+        if *old_licensee_code != 0x33 {
+            println!("License: {}", old_licensee_code_decryption(*old_licensee_code));
+        } else {
+            println!("New licensee code: {:#04X}", self.memory.get(0x0144).unwrap_or(&0));
+        }
+        
         if let Some(header_checksum) = self.memory.get(0x014D) {
             if *header_checksum != 0x00 {
                 self.cpu.registers.set_h(true);
