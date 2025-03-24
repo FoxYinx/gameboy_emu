@@ -124,7 +124,7 @@ impl PPU {
         let wy = memory.get(0xFF4A).copied().unwrap_or(0);
         let wx = memory.get(0xFF4B).copied().unwrap_or(0).wrapping_sub(7);
 
-        let window_visible = window_enable && self.line >= wy;
+        let window_visible = window_enable && self.line >= wy && wx - 7 <= 160 && wx >= 7;
 
         if window_visible {
             self.window_line_counter += 1;
@@ -164,8 +164,8 @@ impl PPU {
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
             let color = if !bg_window_enable {0xFF} else {match (bgp >> (color_id * 2)) & 0b11 {
                 0 => 0xFF,
-                1 => 0x55,
-                2 => 0xAA,
+                1 => 0xAA,
+                2 => 0x55,
                 3 => 0x00,
                 _ => 0xFF,
             }};
@@ -227,8 +227,8 @@ impl PPU {
 
                     let color = match (obp >> (color_id * 2)) & 0b11 {
                         0 => 0xFF,
-                        1 => 0x55,
-                        2 => 0xAA,
+                        1 => 0xAA,
+                        2 => 0x55,
                         3 => 0x00,
                         _ => 0xFF,
                     };
