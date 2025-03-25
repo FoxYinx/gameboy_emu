@@ -9,12 +9,54 @@ pub struct Memory {
 
 impl Memory {
     pub fn new() -> Self {
-        Memory {
+        let mut mem = Memory {
             memory: [0; 0x10000],
             serial_output: SerialOutput::new(),
             cycles_div: 0,
             cycles_tima: 0,
-        }
+        };
+        mem.memory[0xFF00] = 0xCF; //P1
+        mem.memory[0xFF01] = 0x00; //SB
+        mem.memory[0xFF02] = 0x7E; //SC
+        mem.memory[0xFF04] = 0xAB; //DIV
+        mem.memory[0xFF05] = 0x00; //TIMA
+        mem.memory[0xFF06] = 0x00; //TMA
+        mem.memory[0xFF07] = 0xF8; //TAC
+        mem.memory[0xFF0F] = 0xE1; //IF
+        mem.memory[0xFF10] = 0x80; //NR10
+        mem.memory[0xFF11] = 0xBF; //NR11
+        mem.memory[0xFF12] = 0xF3; //NR12
+        mem.memory[0xFF13] = 0xFF; //NR13
+        mem.memory[0xFF14] = 0xBF; //NR14
+        mem.memory[0xFF16] = 0x3F; //NR21
+        mem.memory[0xFF17] = 0x00; //NR22
+        mem.memory[0xFF18] = 0xFF; //NR23
+        mem.memory[0xFF19] = 0xBF; //NR24
+        mem.memory[0xFF1A] = 0x7F; //NR30
+        mem.memory[0xFF1B] = 0xFF; //NR31
+        mem.memory[0xFF1C] = 0x9F; //NR32
+        mem.memory[0xFF1D] = 0xFF; //NR33
+        mem.memory[0xFF1E] = 0xBF; //NR34
+        mem.memory[0xFF20] = 0xFF; //NR41
+        mem.memory[0xFF21] = 0x00; //NR42
+        mem.memory[0xFF22] = 0x00; //NR43
+        mem.memory[0xFF23] = 0xBF; //NR44
+        mem.memory[0xFF24] = 0x77; //NR50
+        mem.memory[0xFF25] = 0xF3; //NR51
+        mem.memory[0xFF26] = 0xF1; //NR52
+        mem.memory[0xFF40] = 0x91; //LCDC
+        mem.memory[0xFF41] = 0x85; //STAT
+        mem.memory[0xFF42] = 0x00; //SCY
+        mem.memory[0xFF43] = 0x00; //SCX
+        mem.memory[0xFF44] = 0x00; //LY
+        mem.memory[0xFF45] = 0x00; //LYC
+        mem.memory[0xFF46] = 0xFF; //DMA
+        mem.memory[0xFF47] = 0xFC; //BGP
+        mem.memory[0xFF4A] = 0x00; //WY
+        mem.memory[0xFF4B] = 0x00; //WX
+        mem.memory[0xFFFF] = 0x00; //IE
+        
+        mem
     }
 
     pub fn get(&self, index: usize) -> Option<&u8> {
