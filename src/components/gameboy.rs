@@ -2,7 +2,7 @@ use crate::components::cpu::CPU;
 use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
 use crate::io;
-use crate::utils::licensee::old_licensee_code_decryption;
+use crate::utils::licensee::{new_licensee_code_decryption, old_licensee_code_decryption};
 
 pub struct Gameboy {
     cpu: CPU,
@@ -40,9 +40,14 @@ impl Gameboy {
 
         let old_licensee_code = self.memory.get(0x014B).unwrap_or(&0);
         if *old_licensee_code != 0x33 {
-            println!("License: {}", old_licensee_code_decryption(*old_licensee_code));
+            println!("Licensee: {}", old_licensee_code_decryption(*old_licensee_code));
         } else {
-            println!("New licensee code: {:#04X}", self.memory.get(0x0144).unwrap_or(&0));
+            let new_licensee_bytes: Vec<u8> = (0x0144..=0x0145).filter_map(|addr| self.memory.get(addr).copied()).collect();
+            if let Ok(new_licensee) = String::from_utf8(new_licensee_bytes) {
+                println!("Licensee: {}", new_licensee_code_decryption(new_licensee));
+            } else {
+                println!("Failed to read licensee.");
+            }
         }
         
         if let Some(header_checksum) = self.memory.get(0x014D) {
