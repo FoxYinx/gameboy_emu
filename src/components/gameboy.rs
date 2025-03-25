@@ -3,6 +3,7 @@ use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
 use crate::io;
 use crate::utils::licensee::{new_licensee_code_decryption, old_licensee_code_decryption};
+use crate::utils::hardware_identification::{cartridge_type_decoder, destination_decoder, ram_size_decoder, rom_size_decoder};
 
 pub struct Gameboy {
     cpu: CPU,
@@ -38,6 +39,18 @@ impl Gameboy {
             println!("Failed to read manufacturer code.");
         }
 
+        let cartridge_type = self.memory.get(0x0147).unwrap_or(&0);
+        println!("Hardware present: {}", cartridge_type_decoder(*cartridge_type));
+
+        let rom_size = self.memory.get(0x0148).unwrap_or(&0);
+        println!("Rom size: {}", rom_size_decoder(*rom_size));
+
+        let ram_size = self.memory.get(0x0149).unwrap_or(&0);
+        println!("Ram size: {}", ram_size_decoder(*ram_size));
+
+        let destination_code = self.memory.get(0x014A).unwrap_or(&0);
+        println!("Destination: {}", destination_decoder(*destination_code));
+
         let old_licensee_code = self.memory.get(0x014B).unwrap_or(&0);
         if *old_licensee_code != 0x33 {
             println!("Licensee: {}", old_licensee_code_decryption(*old_licensee_code));
@@ -49,6 +62,9 @@ impl Gameboy {
                 println!("Failed to read licensee.");
             }
         }
+        
+        let version_number = self.memory.get(0x014C).unwrap_or(&0);
+        println!("Version number: {}", *version_number);
         
         if let Some(header_checksum) = self.memory.get(0x014D) {
             if *header_checksum != 0x00 {
