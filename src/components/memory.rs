@@ -15,6 +15,7 @@ impl Memory {
             cycles_div: 0,
             cycles_tima: 0,
         };
+        
         mem.memory[0xFF00] = 0xCF; //P1
         mem.memory[0xFF01] = 0x00; //SB
         mem.memory[0xFF02] = 0x7E; //SC
