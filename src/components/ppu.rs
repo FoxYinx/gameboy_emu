@@ -123,8 +123,9 @@ impl PPU {
         let scx = memory.get(0xFF43).copied().unwrap_or(0);
         let wy = memory.get(0xFF4A).copied().unwrap_or(0);
         let wx = memory.get(0xFF4B).copied().unwrap_or(0).wrapping_sub(7);
-
-        let window_visible = window_enable && self.line >= wy && wx - 7 <= 160 && wx >= 7;
+        
+        let wx_effective = memory.get(0xFF4B).copied().unwrap_or(0);
+        let window_visible = window_enable && self.line >= wy && (7..=166).contains(&wx_effective);
 
         if window_visible {
             self.window_line_counter += 1;
