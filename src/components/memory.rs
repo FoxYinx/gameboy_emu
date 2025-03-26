@@ -53,6 +53,8 @@ impl Memory {
         mem.memory[0xFF45] = 0x00; //LYC
         mem.memory[0xFF46] = 0xFF; //DMA
         mem.memory[0xFF47] = 0xFC; //BGP
+        mem.memory[0xFF48] = 0xFF; //OBP0
+        mem.memory[0xFF49] = 0xFF; //OBP1
         mem.memory[0xFF4A] = 0x00; //WY
         mem.memory[0xFF4B] = 0x00; //WX
         mem.memory[0xFFFF] = 0x00; //IE
