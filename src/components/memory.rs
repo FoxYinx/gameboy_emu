@@ -92,6 +92,15 @@ impl Memory {
                 self.cycles_tima = 0;
                 self.memory[address] = 0x00;
             }
+            0xFF46 => {
+                let source_start = (value as u16) << 8;
+                for i in 0..0xA0 {
+                    let src = source_start + i;
+                    let dest = 0xFE00 + i;
+                    self.memory[dest as usize] = self.memory[src as usize];
+                }
+                self.memory[address] = value;
+            }
             _ => {
                 self.memory[address] = value;
             }
