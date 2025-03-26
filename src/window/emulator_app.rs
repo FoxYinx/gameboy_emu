@@ -3,7 +3,7 @@ use pixels::{Pixels, SurfaceTexture};
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use winit::window::Window;
 
 pub const WIDTH: u32 = 160;
@@ -23,8 +23,13 @@ impl<'a> EmulatorApp<'a> {
         let (tx, rx) = mpsc::channel();
 
         thread::spawn(move || {
+            let frame_duration = Duration::from_secs_f64(1.0 / 60.0);
+            let cycles_per_frame = 17476;
+            
             loop {
-                for _ in 0..70224 {
+                let start_time = Instant::now();
+                
+                for _ in 0..cycles_per_frame {
                     gameboy.execute_cycle();
                 }
 
@@ -34,7 +39,11 @@ impl<'a> EmulatorApp<'a> {
                 if tx.send(pixels).is_err() {
                     break;
                 }
-                thread::sleep(Duration::from_millis(16));
+                
+                let elapsed = start_time.elapsed();
+                if elapsed < frame_duration {
+                    thread::sleep(frame_duration - elapsed);
+                }
             }
         });
 
