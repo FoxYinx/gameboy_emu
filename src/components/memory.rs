@@ -18,7 +18,7 @@ impl Memory {
             cycles_div: 0,
             cycles_tima: 0,
         };
-        
+
         mem.memory[0xFF00] = 0xCF; //P1
         mem.memory[0xFF01] = 0x00; //SB
         mem.memory[0xFF02] = 0x7E; //SC
@@ -61,7 +61,7 @@ impl Memory {
         mem.memory[0xFF4A] = 0x00; //WY
         mem.memory[0xFF4B] = 0x00; //WX
         mem.memory[0xFFFF] = 0x00; //IE
-        
+
         mem
     }
 
@@ -73,7 +73,6 @@ impl Memory {
         self.memory.get_mut(index)
     }
 
-    //TODO: Enable the usage of other mappers than MBC0
     pub fn write_memory(&mut self, address: usize, value: u8) {
         match address {
             0x0000..0x8000 => {}
@@ -160,10 +159,11 @@ impl Memory {
 
     pub fn write_cartridge(&mut self, cartridge_data: &[u8]) {
         let rom = read_cartridge("resources/boot/dmg_boot.bin".to_string());
-        
+
         let data_len = cartridge_data.len();
-        self.start_cartridge.copy_from_slice(&cartridge_data[0x0000..=0x00FF]);
-        
+        self.start_cartridge
+            .copy_from_slice(&cartridge_data[0x0000..=0x00FF]);
+
         self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
         self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
     }

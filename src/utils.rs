@@ -1,2 +1,2 @@
-pub mod licensee;
 pub mod hardware_identification;
+pub mod licensee;

@@ -28,8 +28,9 @@ pub fn cartridge_type_decoder(code: u8) -> String {
         0xFD => "BANDAI TAMA5",
         0xFE => "HuC3",
         0xFF => "HuC1+RAM+BATTERY",
-        _ => "Do not correspond to any hardware type"
-    }.to_string()
+        _ => "Do not correspond to any hardware type",
+    }
+    .to_string()
 }
 
 pub fn rom_size_decoder(code: u8) -> String {
@@ -46,8 +47,9 @@ pub fn rom_size_decoder(code: u8) -> String {
         0x52 => "1.1 MiB",
         0x53 => "1.2 MiB",
         0x54 => "1.5 MiB",
-        _ => "Do not correspond to any ROM size"
-    }.to_string()
+        _ => "Do not correspond to any ROM size",
+    }
+    .to_string()
 }
 
 pub fn ram_size_decoder(code: u8) -> String {
@@ -58,14 +60,16 @@ pub fn ram_size_decoder(code: u8) -> String {
         0x03 => "32 KiB",
         0x04 => "128 KiB",
         0x05 => "64 KiB",
-        _ => "Do not correspond to any RAM size"
-    }.to_string()
+        _ => "Do not correspond to any RAM size",
+    }
+    .to_string()
 }
 
 pub fn destination_decoder(code: u8) -> String {
     match code {
         0x00 => "Japan (and possibly overseas)",
         0x01 => "Overseas only",
-        _ => "Do not correspond to any destination"
-    }.to_string()
+        _ => "Do not correspond to any destination",
+    }
+    .to_string()
 }

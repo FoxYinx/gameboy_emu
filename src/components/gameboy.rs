@@ -2,8 +2,10 @@ use crate::components::cpu::CPU;
 use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
 use crate::io;
+use crate::utils::hardware_identification::{
+    cartridge_type_decoder, destination_decoder, ram_size_decoder, rom_size_decoder,
+};
 use crate::utils::licensee::{new_licensee_code_decryption, old_licensee_code_decryption};
-use crate::utils::hardware_identification::{cartridge_type_decoder, destination_decoder, ram_size_decoder, rom_size_decoder};
 
 pub struct Gameboy {
     cpu: CPU,
@@ -18,7 +20,7 @@ impl Gameboy {
             cpu: CPU::new(),
             ppu: PPU::new(),
             memory: Memory::new(),
-            cycles: 0
+            cycles: 0,
         }
     }
 
@@ -27,14 +29,18 @@ impl Gameboy {
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
         self.memory.write_cartridge(&cartridge_data);
 
-        let title_bytes: Vec<u8> = (0x0134..=0x0143).filter_map(|addr| self.memory.get(addr).copied()).collect();
+        let title_bytes: Vec<u8> = (0x0134..=0x0143)
+            .filter_map(|addr| self.memory.get(addr).copied())
+            .collect();
         if let Ok(title) = String::from_utf8(title_bytes) {
             println!("Game Title: {}", title);
         } else {
             println!("Failed to read game title.");
         }
 
-        let manufacturer_bytes: Vec<u8> = (0x013F..=0x0142).filter_map(|addr| self.memory.get(addr).copied()).collect();
+        let manufacturer_bytes: Vec<u8> = (0x013F..=0x0142)
+            .filter_map(|addr| self.memory.get(addr).copied())
+            .collect();
         if let Ok(code) = String::from_utf8(manufacturer_bytes) {
             println!("Manufacturer Code: {}", code);
         } else {
@@ -42,7 +48,10 @@ impl Gameboy {
         }
 
         let cartridge_type = self.memory.get(0x0147).unwrap_or(&0);
-        println!("Hardware present: {}", cartridge_type_decoder(*cartridge_type));
+        println!(
+            "Hardware present: {}",
+            cartridge_type_decoder(*cartridge_type)
+        );
 
         let rom_size = self.memory.get(0x0148).unwrap_or(&0);
         println!("Rom size: {}", rom_size_decoder(*rom_size));
@@ -55,19 +64,24 @@ impl Gameboy {
 
         let old_licensee_code = self.memory.get(0x014B).unwrap_or(&0);
         if *old_licensee_code != 0x33 {
-            println!("Licensee: {}", old_licensee_code_decryption(*old_licensee_code));
+            println!(
+                "Licensee: {}",
+                old_licensee_code_decryption(*old_licensee_code)
+            );
         } else {
-            let new_licensee_bytes: Vec<u8> = (0x0144..=0x0145).filter_map(|addr| self.memory.get(addr).copied()).collect();
+            let new_licensee_bytes: Vec<u8> = (0x0144..=0x0145)
+                .filter_map(|addr| self.memory.get(addr).copied())
+                .collect();
             if let Ok(new_licensee) = String::from_utf8(new_licensee_bytes) {
                 println!("Licensee: {}", new_licensee_code_decryption(new_licensee));
             } else {
                 println!("Failed to read licensee.");
             }
         }
-        
+
         let version_number = self.memory.get(0x014C).unwrap_or(&0);
         println!("Version number: {}", *version_number);
-        
+
         if let Some(header_checksum) = self.memory.get(0x014D) {
             if *header_checksum != 0x00 {
                 self.cpu.registers.set_h(true);
@@ -121,7 +135,7 @@ impl Gameboy {
             self.cpu.check_interrupts(&mut self.memory);
 
             self.ppu.step(cycles, &mut self.memory);
-            
+
             self.cycles += cycles;
             if self.cpu.registers.pc == 0x0100 {
                 self.memory.disable_rom();

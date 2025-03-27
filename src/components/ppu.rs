@@ -14,7 +14,7 @@ pub struct PPU {
     pub framebuffer: [u8; (WIDTH * HEIGHT * 4) as usize],
     line: u8,
     mode_clock: u64,
-    window_line_counter: u8
+    window_line_counter: u8,
 }
 
 impl PPU {
@@ -24,7 +24,7 @@ impl PPU {
             framebuffer: [0; (WIDTH * HEIGHT * 4) as usize],
             line: 0,
             mode_clock: 0,
-            window_line_counter: 0
+            window_line_counter: 0,
         }
     }
 
@@ -55,7 +55,7 @@ impl PPU {
                         self.line += 1;
                         memory.write_memory(0xFF44, self.line);
                         self.update_stat(memory);
-                        
+
                         if self.line >= 144 {
                             self.mode = VBlank;
                             self.window_line_counter = 0;
@@ -75,7 +75,7 @@ impl PPU {
                         self.line += 1;
                         memory.write_memory(0xFF44, self.line);
                         self.update_stat(memory);
-                        
+
                         if self.line > 153 {
                             self.line = 0;
                             self.mode = OAMScan;
@@ -89,7 +89,7 @@ impl PPU {
             }
         }
     }
-    
+
     fn update_stat(&mut self, memory: &mut Memory) {
         let lyc = memory.get(0xFF45).copied().unwrap_or(0);
         if let Some(stat) = memory.get_mut(0xFF41) {
@@ -115,15 +115,15 @@ impl PPU {
         let obj_size = (lcdc & 0x04) != 0;
         let window_enable = (lcdc & 0x20) != 0;
 
-        let bg_tile_map = if (lcdc & 0x08) != 0 {0x9C00} else {0x9800};
-        let window_tile_map = if (lcdc & 0x40) != 0 {0x9C00} else {0x9800};
-        let tile_data = if (lcdc & 0x10) != 0 {0x8000} else {0x8800};
+        let bg_tile_map = if (lcdc & 0x08) != 0 { 0x9C00 } else { 0x9800 };
+        let window_tile_map = if (lcdc & 0x40) != 0 { 0x9C00 } else { 0x9800 };
+        let tile_data = if (lcdc & 0x10) != 0 { 0x8000 } else { 0x8800 };
 
         let scy = memory.get(0xFF42).copied().unwrap_or(0);
         let scx = memory.get(0xFF43).copied().unwrap_or(0);
         let wy = memory.get(0xFF4A).copied().unwrap_or(0);
         let wx = memory.get(0xFF4B).copied().unwrap_or(0).wrapping_sub(7);
-        
+
         let wx_effective = memory.get(0xFF4B).copied().unwrap_or(0);
         let window_visible = window_enable && self.line >= wy && (7..=166).contains(&wx_effective);
 
@@ -154,8 +154,14 @@ impl PPU {
             };
 
             let row = (self.line % 8) as u16 * 2;
-            let byte1 = memory.get(tile_data_address as usize + row as usize).copied().unwrap_or(0);
-            let byte2 = memory.get(tile_data_address as usize + row as usize + 1).copied().unwrap_or(0);
+            let byte1 = memory
+                .get(tile_data_address as usize + row as usize)
+                .copied()
+                .unwrap_or(0);
+            let byte2 = memory
+                .get(tile_data_address as usize + row as usize + 1)
+                .copied()
+                .unwrap_or(0);
 
             let bit_index = 7 - (pixel_x as u16 % 8);
             let color_bit_high = (byte1 >> bit_index) & 1;
@@ -163,13 +169,17 @@ impl PPU {
             let color_id = (color_bit_high << 1) | color_bit_low;
 
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
-            let color = if !bg_window_enable {0xFF} else {match (bgp >> (color_id * 2)) & 0b11 {
-                0 => 0xFF,
-                1 => 0xAA,
-                2 => 0x55,
-                3 => 0x00,
-                _ => 0xFF,
-            }};
+            let color = if !bg_window_enable {
+                0xFF
+            } else {
+                match (bgp >> (color_id * 2)) & 0b11 {
+                    0 => 0xFF,
+                    1 => 0xAA,
+                    2 => 0x55,
+                    3 => 0x00,
+                    _ => 0xFF,
+                }
+            };
 
             let index = (self.line as usize * WIDTH as usize + x as usize) * 4;
             self.framebuffer[index] = color;
@@ -180,7 +190,7 @@ impl PPU {
 
         if obj_enable {
             let mut sprites: Vec<(u8, u8, u8, u8)> = Vec::new();
-            let sprite_height = if obj_size {16} else {8};
+            let sprite_height = if obj_size { 16 } else { 8 };
             for i in 0..40 {
                 let sprite_index = i * 4;
                 let y_pos = memory.get(0xFE00 + sprite_index).copied().unwrap_or(0);
@@ -192,7 +202,9 @@ impl PPU {
                     tile_num &= 0xFE;
                 }
 
-                if self.line >= y_pos.wrapping_sub(16) && self.line < y_pos.wrapping_sub(16).wrapping_add(sprite_height) {
+                if self.line >= y_pos.wrapping_sub(16)
+                    && self.line < y_pos.wrapping_sub(16).wrapping_add(sprite_height)
+                {
                     sprites.push((x_pos, y_pos, tile_num, attributes));
                 }
             }
@@ -204,14 +216,18 @@ impl PPU {
                     sprite_height - 1 - (self.line.wrapping_sub(y_pos.wrapping_sub(16)))
                 } else {
                     self.line.wrapping_sub(y_pos.wrapping_sub(16))
-                } as u16 * 2;
+                } as u16
+                    * 2;
 
                 let tile_data_address = 0x8000 + (tile_num as u16 * 16) + row;
                 let byte1 = memory.get(tile_data_address as usize).copied().unwrap_or(0);
-                let byte2 = memory.get(tile_data_address as usize + 1).copied().unwrap_or(0);
+                let byte2 = memory
+                    .get(tile_data_address as usize + 1)
+                    .copied()
+                    .unwrap_or(0);
 
                 for x in 0..8 {
-                    let bit_index = if attributes & 0x20 != 0 {x} else {7 - x};
+                    let bit_index = if attributes & 0x20 != 0 { x } else { 7 - x };
                     let color_bit_high = (byte1 >> bit_index) & 1;
                     let color_bit_low = (byte2 >> bit_index) & 1;
                     let color_id = (color_bit_high << 1) | color_bit_low;
@@ -249,7 +265,7 @@ impl PPU {
             }
         }
     }
-    
+
     pub fn copy_to_framebuffer(&self, output: &mut [u8]) {
         output.copy_from_slice(&self.framebuffer);
     }

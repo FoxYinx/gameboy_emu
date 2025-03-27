@@ -12,7 +12,7 @@ pub const HEIGHT: u32 = 144;
 pub struct EmulatorApp<'a> {
     pixels: Pixels<'a>,
     rx: Receiver<Vec<u8>>,
-    _window: &'a Window
+    _window: &'a Window,
 }
 
 impl<'a> EmulatorApp<'a> {
@@ -25,7 +25,7 @@ impl<'a> EmulatorApp<'a> {
         thread::spawn(move || {
             let frame_duration = Duration::from_secs_f64(1.0 / 60.0);
             let cycles_per_frame = 69904;
-            
+
             loop {
                 let start_time = Instant::now();
 
@@ -33,7 +33,6 @@ impl<'a> EmulatorApp<'a> {
                     gameboy.execute_cycle();
                 }
                 gameboy.cycles = 0;
-                
 
                 let mut pixels = vec![0; (WIDTH * HEIGHT * 4) as usize];
                 gameboy.ppu.copy_to_framebuffer(&mut pixels);
@@ -41,7 +40,7 @@ impl<'a> EmulatorApp<'a> {
                 if tx.send(pixels).is_err() {
                     break;
                 }
-                
+
                 let elapsed = start_time.elapsed();
                 if elapsed < frame_duration {
                     thread::sleep(frame_duration - elapsed);
@@ -50,13 +49,13 @@ impl<'a> EmulatorApp<'a> {
         });
 
         let surface_texture = SurfaceTexture::new(WIDTH, HEIGHT, window);
-        let pixels = Pixels::new(WIDTH, HEIGHT, surface_texture)
-            .expect("Failed to create pixels context");
+        let pixels =
+            Pixels::new(WIDTH, HEIGHT, surface_texture).expect("Failed to create pixels context");
 
         Self {
             pixels,
             rx,
-            _window: window
+            _window: window,
         }
     }
 

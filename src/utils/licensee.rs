@@ -1,5 +1,5 @@
 pub fn old_licensee_code_decryption(code: u8) -> String {
-    match code { 
+    match code {
         0x00 => "",
         0x01 => "Nintendo",
         0x08 => "Capcom",
@@ -146,8 +146,9 @@ pub fn old_licensee_code_decryption(code: u8) -> String {
         0xF0 => "A Wave",
         0xF3 => "Extreme Entertainment",
         0xFF => "LJN",
-        _ => "Do not correspond to any license"
-    }.to_string()
+        _ => "Do not correspond to any license",
+    }
+    .to_string()
 }
 
 pub fn new_licensee_code_decryption(code: String) -> String {
@@ -216,6 +217,7 @@ pub fn new_licensee_code_decryption(code: String) -> String {
         "A4" => "Konami (Yu-Gi-Oh!)",
         "BL" => "MTO",
         "DK" => "Kodansha",
-        _ => "Do not correspond to any license"
-    }.to_string()
+        _ => "Do not correspond to any license",
+    }
+    .to_string()
 }
