@@ -1,7 +1,9 @@
+use crate::io::cartridge_reader::read_cartridge;
 use crate::io::serialoutput::SerialOutput;
 
 pub struct Memory {
     memory: [u8; 0x10000],
+    start_cartridge: [u8; 0x100],
     serial_output: SerialOutput,
     cycles_div: u64,
     cycles_tima: u64,
@@ -11,6 +13,7 @@ impl Memory {
     pub fn new() -> Self {
         let mut mem = Memory {
             memory: [0; 0x10000],
+            start_cartridge: [0; 0x100],
             serial_output: SerialOutput::new(),
             cycles_div: 0,
             cycles_tima: 0,
@@ -154,8 +157,18 @@ impl Memory {
     }
 
     pub fn write_cartridge(&mut self, cartridge_data: &[u8]) {
-        self.memory[0x0000..cartridge_data.len()].copy_from_slice(cartridge_data);
+        let rom = read_cartridge("resources/boot/dmg_boot.bin".to_string());
+        
+        let data_len = cartridge_data.len();
+        self.start_cartridge.copy_from_slice(&cartridge_data[0x0000..=0x00FF]);
+        
+        self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
+        self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
     }
+    
+    pub fn disable_rom(&mut self) {
+        self.memory[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
+    } 
 
     pub fn get_serial_output(&self) -> &SerialOutput {
         &self.serial_output

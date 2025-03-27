@@ -109,8 +109,8 @@ impl Gameboy {
             return;
         }
 
-        if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize) {
-            let (jumped, cycles) = self.cpu.process_opcode(*opcode, &mut self.memory);
+        if let Some(opcode) = self.memory.get(self.cpu.registers.pc as usize).copied() {
+            let (jumped, cycles) = self.cpu.process_opcode(opcode, &mut self.memory);
             self.memory.update_timer(cycles);
             self.cpu.update_ime();
 
@@ -122,6 +122,9 @@ impl Gameboy {
             self.ppu.step(cycles, &mut self.memory);
             
             self.cycles += cycles;
+            if self.cpu.registers.pc == 0x0100 {
+                self.memory.disable_rom();
+            }
         } else {
             panic!("Tried to access address outside of ROM");
         }
