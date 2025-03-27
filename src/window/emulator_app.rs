@@ -24,14 +24,16 @@ impl<'a> EmulatorApp<'a> {
 
         thread::spawn(move || {
             let frame_duration = Duration::from_secs_f64(1.0 / 60.0);
-            let cycles_per_frame = 17476;
+            let cycles_per_frame = 69904;
             
             loop {
                 let start_time = Instant::now();
-                
-                for _ in 0..cycles_per_frame {
+
+                while gameboy.cycles < cycles_per_frame {
                     gameboy.execute_cycle();
                 }
+                gameboy.cycles = 0;
+                
 
                 let mut pixels = vec![0; (WIDTH * HEIGHT * 4) as usize];
                 gameboy.ppu.copy_to_framebuffer(&mut pixels);

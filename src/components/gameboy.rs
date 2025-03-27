@@ -8,7 +8,8 @@ use crate::utils::hardware_identification::{cartridge_type_decoder, destination_
 pub struct Gameboy {
     cpu: CPU,
     pub(crate) ppu: PPU,
-    memory: Memory
+    memory: Memory,
+    pub(crate) cycles: u64,
 }
 
 impl Gameboy {
@@ -16,7 +17,8 @@ impl Gameboy {
         Gameboy {
             cpu: CPU::new(),
             ppu: PPU::new(),
-            memory: Memory::new()
+            memory: Memory::new(),
+            cycles: 0
         }
     }
 
@@ -118,6 +120,8 @@ impl Gameboy {
             self.cpu.check_interrupts(&mut self.memory);
 
             self.ppu.step(cycles, &mut self.memory);
+            
+            self.cycles += cycles;
         } else {
             panic!("Tried to access address outside of ROM");
         }
