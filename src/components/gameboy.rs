@@ -98,6 +98,7 @@ impl Gameboy {
         if self.cpu.halted {
             self.ppu.step(4, &mut self.memory);
             self.memory.update_timer(4);
+            self.cycles += 4;
 
             let ie = self.memory.get(0xFFFF).copied().unwrap_or(0);
             let if_ = self.memory.get(0xFF0F).copied().unwrap_or(0);
