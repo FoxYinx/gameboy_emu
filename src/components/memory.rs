@@ -73,8 +73,10 @@ impl Memory {
         self.memory.get_mut(index)
     }
 
+    //TODO: Enable the usage of other mappers than MBC0
     pub fn write_memory(&mut self, address: usize, value: u8) {
         match address {
+            0x0000..0x8000 => {}
             0xC000..=0xDDFF => {
                 self.memory[address] = value;
                 self.memory[address + 0x2000] = value;
@@ -165,10 +167,10 @@ impl Memory {
         self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
         self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
     }
-    
+
     pub fn disable_rom(&mut self) {
         self.memory[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
-    } 
+    }
 
     pub fn get_serial_output(&self) -> &SerialOutput {
         &self.serial_output
