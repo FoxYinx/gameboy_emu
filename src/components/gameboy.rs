@@ -156,7 +156,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/01-special.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -167,7 +167,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/02-interrupts.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -178,7 +178,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/03-op sp,hl.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -189,7 +189,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/04-op r,imm.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -200,7 +200,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/05-op rp.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -211,7 +211,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/06-ld r,r.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -222,7 +222,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -233,7 +233,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/08-misc instrs.gb",
         ));
-        gameboy.start(Some(2_000_000));
+        gameboy.start(Some(4_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -244,7 +244,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/09-op r,r.gb",
         ));
-        gameboy.start(Some(4_500_000));
+        gameboy.start(Some(7_500_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -255,7 +255,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/10-bit ops.gb",
         ));
-        gameboy.start(Some(7_000_000));
+        gameboy.start(Some(9_000_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -266,7 +266,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/cpu_instrs/individual/11-op a,(hl).gb",
         ));
-        gameboy.start(Some(7_500_000));
+        gameboy.start(Some(10_500_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
@@ -277,7 +277,7 @@ mod tests {
         gameboy.cartridge_to_rom(String::from(
             "resources/roms/blargg/instr_timing/instr_timing.gb",
         ));
-        gameboy.start(Some(300_000));
+        gameboy.start(Some(3_300_000));
         let output = gameboy.memory.get_serial_output().get_output();
         assert!(output.contains("Passed"), "Test failed. Output: {}", output);
     }
