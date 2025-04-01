@@ -33,6 +33,10 @@ impl PPU {
         while self.mode_clock > 0 {
             match self.mode {
                 OAMScan => {
+                    if let Some(stat) = memory.get_mut(0xFF41) {
+                        *stat = (*stat & 0b1111_1100) | 0b10;
+                    }
+
                     if self.mode_clock >= 80 {
                         self.mode_clock -= 80;
                         self.mode = PixelDrawing;
@@ -41,6 +45,10 @@ impl PPU {
                     }
                 }
                 PixelDrawing => {
+                    if let Some(stat) = memory.get_mut(0xFF41) {
+                        *stat = (*stat & 0b1111_1100) | 0b11;
+                    }
+
                     if self.mode_clock >= 172 {
                         self.mode_clock -= 172;
                         self.mode = HBlank;
@@ -50,6 +58,10 @@ impl PPU {
                     }
                 }
                 HBlank => {
+                    if let Some(stat) = memory.get_mut(0xFF41) {
+                        *stat &= 0b1111_1100;
+                    }
+
                     if self.mode_clock >= 204 {
                         self.mode_clock -= 204;
                         self.line += 1;
@@ -70,6 +82,10 @@ impl PPU {
                     }
                 }
                 VBlank => {
+                    if let Some(stat) = memory.get_mut(0xFF41) {
+                        *stat = (*stat & 0b1111_1100) | 0b01;
+                    }
+
                     if self.mode_clock >= 456 {
                         self.mode_clock -= 456;
                         self.line += 1;
@@ -90,9 +106,14 @@ impl PPU {
         }
     }
 
+    //fixme: add interrupts when entering new mode
     fn update_stat(&mut self, memory: &mut Memory) {
+        let lcdc = memory.get(0xFF40).copied().unwrap_or(0);
         let lyc = memory.get(0xFF45).copied().unwrap_or(0);
         if let Some(stat) = memory.get_mut(0xFF41) {
+            if (lcdc & 0x80) == 0 {
+                *stat &= 0b1111_1100;
+            }
             if self.line == lyc {
                 *stat |= 0x04;
                 if (*stat & 0x40) != 0 {
