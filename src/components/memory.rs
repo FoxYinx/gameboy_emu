@@ -1,3 +1,4 @@
+use crate::components::memory::Mbc::{MBC0, MBC1, MBC2, MBC3, MBC5, MBC6, MBC7, MMM01};
 use crate::io::cartridge_reader::read_cartridge;
 use crate::io::serialoutput::SerialOutput;
 
@@ -7,6 +8,19 @@ pub struct Memory {
     serial_output: SerialOutput,
     cycles_div: u64,
     cycles_tima: u64,
+    mbc: Mbc
+}
+
+#[derive(PartialEq)]
+enum Mbc {
+    MBC0,
+    MBC1,
+    MBC2,
+    MBC3,
+    MBC5,
+    MBC6,
+    MBC7,
+    MMM01
 }
 
 impl Memory {
@@ -17,6 +31,7 @@ impl Memory {
             serial_output: SerialOutput::new(),
             cycles_div: 0,
             cycles_tima: 0,
+            mbc: MBC0
         };
 
         mem.memory[0xFF00] = 0xCF; //P1
@@ -75,7 +90,12 @@ impl Memory {
 
     pub fn write_memory(&mut self, address: usize, value: u8) {
         match address {
-            0x0000..0x8000 => {}
+            0x0000..0x8000 => {
+                if self.mbc != MBC0 {
+                    self.memory[address] = value;
+                }
+            }
+            0xA000..0xC000 => {}
             0xC000..=0xDDFF => {
                 self.memory[address] = value;
                 self.memory[address + 0x2000] = value;
@@ -174,5 +194,19 @@ impl Memory {
 
     pub fn get_serial_output(&self) -> &SerialOutput {
         &self.serial_output
+    }
+
+    pub(crate) fn select_mbc(&mut self, code: u8) {
+        self.mbc = match code { 
+            0x00 => MBC0,
+            0x01..=0x03 => MBC1,
+            0x05..=0x06 => MBC2,
+            0x0B..=0x0D => MMM01,
+            0x0F..=0x13 => MBC3,
+            0x19..=0x1E => MBC5,
+            0x20 => MBC6,
+            0x22 => MBC7,
+            _ => MBC0
+        };
     }
 }
