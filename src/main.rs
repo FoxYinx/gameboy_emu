@@ -18,26 +18,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(&event_loop)?,
     );
 
-    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/drmario.gb");
+    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/tetris.gb");
 
     let window_clone = Arc::clone(&window);
     event_loop.run(move |event, elwt| {
         elwt.set_control_flow(ControlFlow::Wait);
 
         match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => {
-                elwt.exit();
-            }
-            Event::WindowEvent {
-                event: WindowEvent::RedrawRequested,
-                ..
-            } => {
-                emulator_app.update();
-                emulator_app.render().expect("Failed to render");
-            }
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::CloseRequested => elwt.exit(),
+                WindowEvent::KeyboardInput {event, .. } => {
+                    let keycode = event.physical_key;
+                    let pressed = event.state;
+                    emulator_app.update_inputs(keycode, pressed);
+                }
+                WindowEvent::RedrawRequested => {
+                    emulator_app.update();
+                    emulator_app.render().expect("Failed to render");
+                }
+                _ => (),
+            },
             Event::AboutToWait => {
                 window_clone.request_redraw();
             }

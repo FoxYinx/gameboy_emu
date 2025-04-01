@@ -8,7 +8,8 @@ pub struct Memory {
     serial_output: SerialOutput,
     cycles_div: u64,
     cycles_tima: u64,
-    mbc: Mbc
+    mbc: Mbc,
+    pub(crate) input_buffer: u8,
 }
 
 #[derive(PartialEq)]
@@ -31,7 +32,8 @@ impl Memory {
             serial_output: SerialOutput::new(),
             cycles_div: 0,
             cycles_tima: 0,
-            mbc: MBC0
+            mbc: MBC0,
+            input_buffer: 0xFF
         };
 
         mem.memory[0xFF00] = 0xCF; //P1
@@ -102,6 +104,16 @@ impl Memory {
             }
             0xFEA0..=0xFEFF => {
                 // Do nothing
+            }
+            0xFF00 => {
+                let current_inputs = match (value & 0x30) >> 4 { 
+                    0 => (self.input_buffer & 0x0F) | (self.input_buffer >> 4), //both selected
+                    1 => self.input_buffer >> 4, //buttons selected
+                    2 => self.input_buffer & 0x0F, //d-pad selected
+                    3 => 0xF, //nothing selected
+                    _ => 0xF
+                };
+                self.memory[address] = value | current_inputs;
             }
             0xFF02 => {
                 if value == 0x81 {
@@ -197,7 +209,7 @@ impl Memory {
     }
 
     pub(crate) fn select_mbc(&mut self, code: u8) {
-        self.mbc = match code { 
+        self.mbc = match code {
             0x00 => MBC0,
             0x01..=0x03 => MBC1,
             0x05..=0x06 => MBC2,

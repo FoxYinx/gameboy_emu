@@ -147,6 +147,10 @@ impl Gameboy {
             panic!("Tried to access address outside of ROM");
         }
     }
+
+    pub(crate) fn write_inputs(&mut self, inputs: u8) {
+        self.memory.input_buffer = inputs;
+    }
 }
 
 #[cfg(test)]
