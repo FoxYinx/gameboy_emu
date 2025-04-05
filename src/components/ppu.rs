@@ -71,9 +71,14 @@ impl PPU {
                         if self.line >= 144 {
                             self.mode = VBlank;
                             self.window_line_counter = 0;
-                            if let Some(flag) = memory.get_mut(0xFF0F) {
-                                *flag |= 0x01;
+                            if let Some(lcdc) = memory.get(0xFF40) {
+                                if (*lcdc & 0x80) != 0 {
+                                    if let Some(flag) = memory.get_mut(0xFF0F) {
+                                        *flag |= 0x01;
+                                    }
+                                }
                             }
+                           
                         } else {
                             self.mode = OAMScan;
                         }
@@ -119,8 +124,7 @@ impl PPU {
             if (lcdc & 0x80) == 0 {
                 *stat = (*stat & 0b1111_1100) | 0b01;
                 self.framebuffer.fill(0xFF);
-            }
-            if self.line == lyc {
+            } else if self.line == lyc {
                 *stat |= 0x04;
                 if (*stat & 0x40) != 0 {
                     if let Some(flag) = memory.get_mut(0xFF0F) {
