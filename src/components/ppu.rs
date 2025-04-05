@@ -111,8 +111,14 @@ impl PPU {
         let lcdc = memory.get(0xFF40).copied().unwrap_or(0);
         let lyc = memory.get(0xFF45).copied().unwrap_or(0);
         if let Some(stat) = memory.get_mut(0xFF41) {
+            if (*stat & 0x08 != 0) || (*stat & 0x20 != 0) || (*stat & 0x10 != 0) {
+                println!("stat is {:#04X}", *stat);
+                panic!("Unimplemented interrupt!");
+            }
+
             if (lcdc & 0x80) == 0 {
-                *stat &= 0b1111_1100;
+                *stat = (*stat & 0b1111_1100) | 0b01;
+                self.framebuffer.fill(0xFF);
             }
             if self.line == lyc {
                 *stat |= 0x04;
@@ -185,8 +191,8 @@ impl PPU {
                 .unwrap_or(0);
 
             let bit_index = 7 - (pixel_x as u16 % 8);
-            let color_bit_high = (byte1 >> bit_index) & 1;
-            let color_bit_low = (byte2 >> bit_index) & 1;
+            let color_bit_low = (byte1 >> bit_index) & 1;
+            let color_bit_high = (byte2 >> bit_index) & 1;
             let color_id = (color_bit_high << 1) | color_bit_low;
 
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
@@ -249,8 +255,8 @@ impl PPU {
 
                 for x in 0..8 {
                     let bit_index = if attributes & 0x20 != 0 { x } else { 7 - x };
-                    let color_bit_high = (byte1 >> bit_index) & 1;
-                    let color_bit_low = (byte2 >> bit_index) & 1;
+                    let color_bit_low = (byte1 >> bit_index) & 1;
+                    let color_bit_high = (byte2 >> bit_index) & 1;
                     let color_id = (color_bit_high << 1) | color_bit_low;
 
                     if color_id == 0 {
