@@ -27,9 +27,10 @@ impl Gameboy {
     pub fn cartridge_to_rom(&mut self, filename: String) {
         println!("Loading ROM: {filename}");
         let cartridge_data = io::cartridge_reader::read_cartridge(filename);
-        
-        self.memory.select_mbc(*cartridge_data.get(0x0147).unwrap_or(&0));
-        
+
+        self.memory
+            .select_mbc(*cartridge_data.get(0x0147).unwrap_or(&0));
+
         self.memory.write_cartridge(&cartridge_data);
 
         let title_bytes: Vec<u8> = (0x0134..=0x0143)

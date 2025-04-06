@@ -16,7 +16,7 @@ pub struct EmulatorApp<'a> {
     rx_pixels: Receiver<Vec<u8>>,
     tx_inputs: Sender<u8>,
     _window: &'a Window,
-    input_buffer: u8
+    input_buffer: u8,
 }
 
 impl<'a> EmulatorApp<'a> {
@@ -66,7 +66,7 @@ impl<'a> EmulatorApp<'a> {
             rx_pixels,
             tx_inputs,
             _window: window,
-            input_buffer: 0xFF
+            input_buffer: 0xFF,
         }
     }
 
@@ -82,10 +82,18 @@ impl<'a> EmulatorApp<'a> {
 
     pub(crate) fn update_inputs(&mut self, keycode: PhysicalKey, state: ElementState) {
         match keycode {
-            PhysicalKey::Code(KeyCode::ArrowRight) | PhysicalKey::Code(KeyCode::KeyD) => self.set_input_state(0b0000_0001, state), // Right
-            PhysicalKey::Code(KeyCode::ArrowLeft) | PhysicalKey::Code(KeyCode::KeyA) => self.set_input_state(0b0000_0010, state), // Left
-            PhysicalKey::Code(KeyCode::ArrowUp) | PhysicalKey::Code(KeyCode::KeyW) => self.set_input_state(0b0000_0100, state), // Up
-            PhysicalKey::Code(KeyCode::ArrowDown) | PhysicalKey::Code(KeyCode::KeyS) => self.set_input_state(0b0000_1000, state), // Down
+            PhysicalKey::Code(KeyCode::ArrowRight) | PhysicalKey::Code(KeyCode::KeyD) => {
+                self.set_input_state(0b0000_0001, state)
+            } // Right
+            PhysicalKey::Code(KeyCode::ArrowLeft) | PhysicalKey::Code(KeyCode::KeyA) => {
+                self.set_input_state(0b0000_0010, state)
+            } // Left
+            PhysicalKey::Code(KeyCode::ArrowUp) | PhysicalKey::Code(KeyCode::KeyW) => {
+                self.set_input_state(0b0000_0100, state)
+            } // Up
+            PhysicalKey::Code(KeyCode::ArrowDown) | PhysicalKey::Code(KeyCode::KeyS) => {
+                self.set_input_state(0b0000_1000, state)
+            } // Down
             PhysicalKey::Code(KeyCode::KeyZ) => self.set_input_state(0b0001_0000, state), // A
             PhysicalKey::Code(KeyCode::KeyX) => self.set_input_state(0b0010_0000, state), // B
             PhysicalKey::Code(KeyCode::ShiftRight) => self.set_input_state(0b0100_0000, state), // Select

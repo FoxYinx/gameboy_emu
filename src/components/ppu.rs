@@ -78,7 +78,6 @@ impl PPU {
                                     }
                                 }
                             }
-                           
                         } else {
                             self.mode = OAMScan;
                         }

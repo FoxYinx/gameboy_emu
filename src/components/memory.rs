@@ -21,7 +21,7 @@ enum Mbc {
     MBC5,
     MBC6,
     MBC7,
-    MMM01
+    MMM01,
 }
 
 impl Memory {
@@ -33,7 +33,7 @@ impl Memory {
             cycles_div: 0,
             cycles_tima: 0,
             mbc: MBC0,
-            input_buffer: 0xFF
+            input_buffer: 0xFF,
         };
 
         mem.memory[0xFF00] = 0xCF; //P1
@@ -106,12 +106,12 @@ impl Memory {
                 // Do nothing
             }
             0xFF00 => {
-                let current_inputs = match (value & 0x30) >> 4 { 
+                let current_inputs = match (value & 0x30) >> 4 {
                     0 => (self.input_buffer & 0x0F) | (self.input_buffer >> 4), //both selected
-                    1 => self.input_buffer >> 4, //buttons selected
-                    2 => self.input_buffer & 0x0F, //d-pad selected
-                    3 => 0xF, //nothing selected
-                    _ => 0xF
+                    1 => self.input_buffer >> 4,                                //buttons selected
+                    2 => self.input_buffer & 0x0F,                              //d-pad selected
+                    3 => 0xF,                                                   //nothing selected
+                    _ => 0xF,
                 };
                 self.memory[address] = value | current_inputs;
             }
@@ -218,7 +218,7 @@ impl Memory {
             0x19..=0x1E => MBC5,
             0x20 => MBC6,
             0x22 => MBC7,
-            _ => MBC0
+            _ => MBC0,
         };
     }
 }

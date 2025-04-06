@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(&event_loop)?,
     );
 
-    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/tetris.gb");
+    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/drmario.gb");
 
     let window_clone = Arc::clone(&window);
     event_loop.run(move |event, elwt| {
@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match event {
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested => elwt.exit(),
-                WindowEvent::KeyboardInput {event, .. } => {
+                WindowEvent::KeyboardInput { event, .. } => {
                     let keycode = event.physical_key;
                     let pressed = event.state;
                     emulator_app.update_inputs(keycode, pressed);
