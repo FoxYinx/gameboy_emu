@@ -183,7 +183,7 @@ impl PPU {
                 tile_data + ((tile_num as i8 as i16 + 128) as u16) * 16
             };
 
-            let row = (self.line % 8) as u16 * 2;
+            let row = (pixel_y % 8) as u16 * 2;
             let byte1 = memory
                 .get(tile_data_address as usize + row as usize)
                 .copied()
