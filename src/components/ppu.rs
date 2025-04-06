@@ -71,6 +71,8 @@ impl PPU {
                         if self.line >= 144 {
                             self.mode = VBlank;
                             self.window_line_counter = 0;
+                            
+                            //fixme: This code makes alleywey not run...
                             if let Some(lcdc) = memory.get(0xFF40) {
                                 if (*lcdc & 0x80) != 0 {
                                     if let Some(flag) = memory.get_mut(0xFF0F) {
