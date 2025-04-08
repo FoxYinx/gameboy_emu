@@ -4,6 +4,14 @@ use crate::io::serialoutput::SerialOutput;
 
 pub struct Memory {
     memory: [u8; 0x10000],
+    rom: Vec<u8>,
+    ram: Vec<u8>,
+    rombank: usize,
+    rombanks: usize,
+    rambank: usize,
+    rambanks: usize,
+    ram_enabled: bool,
+    banking_mode: u8,
     start_cartridge: [u8; 0x100],
     serial_output: SerialOutput,
     cycles_div: u64,
@@ -28,6 +36,14 @@ impl Memory {
     pub fn new() -> Self {
         let mut mem = Memory {
             memory: [0; 0x10000],
+            rom: Vec::new(),
+            ram: Vec::new(),
+            rombank: 1,
+            rombanks: 1,
+            rambank: 0,
+            rambanks: 0,
+            ram_enabled: false,
+            banking_mode: 0,
             start_cartridge: [0; 0x100],
             serial_output: SerialOutput::new(),
             cycles_div: 0,
@@ -83,21 +99,104 @@ impl Memory {
     }
 
     pub fn get(&self, index: usize) -> Option<&u8> {
-        self.memory.get(index)
+        if self.mbc == MBC0 {
+            self.memory.get(index)
+        } else if self.mbc == MBC1 {
+            match index{
+                0x0000..0x8000 => {
+                    let bank = if index < 0x4000 {
+                        if self.banking_mode == 0 {
+                            0
+                        }
+                        else {
+                            self.rombank & 0xE0
+                        }
+                    } else {
+                        self.rombank
+                    };
+                    let idx = (bank * 0x4000) | (index & 0x3FFF);
+                    self.rom.get(idx)
+                }
+                0xA000..0xC000 => {
+                    let bank = if self.banking_mode == 1 {self.rambank} else {0};
+                    let idx = (bank * 0x2000) | (index & 0x1FFFF);
+                    self.ram.get(idx)
+                }
+                _ => self.memory.get(index)
+            }
+        } else {
+            None
+        }
     }
 
     pub fn get_mut(&mut self, index: usize) -> Option<&mut u8> {
-        self.memory.get_mut(index)
+        if self.mbc == MBC0 {
+            self.memory.get_mut(index)
+        } else if self.mbc == MBC1 {
+            match index{
+                0x0000..0x8000 => {
+                    let bank = if index < 0x4000 {
+                        if self.banking_mode == 0 {
+                            0
+                        }
+                        else {
+                            self.rombank & 0xE0
+                        }
+                    } else {
+                        self.rombank
+                    };
+                    let idx = (bank * 0x4000) | (index & 0x3FFF);
+                    self.rom.get_mut(idx)
+                }
+                0xA000..0xC000 => {
+                    let bank = if self.banking_mode == 1 {self.rambank} else {0};
+                    let idx = (bank * 0x2000) | (index & 0x1FFFF);
+                    self.ram.get_mut(idx)
+                }
+                _ => self.memory.get_mut(index)
+            }
+        } else {
+            None
+        }
     }
 
     pub fn write_memory(&mut self, address: usize, value: u8) {
         match address {
             0x0000..0x8000 => {
-                if self.mbc != MBC0 {
-                    self.memory[address] = value;
+                if self.mbc == MBC1 {
+                    match address { 
+                        0x0000..0x2000 => self.ram_enabled = value & 0xF == 0xA,
+                        0x2000..0x4000 => {
+                            let lower_bits = match (value as usize) & 0x1F { 
+                                0 => 1,
+                                n => n
+                            };
+                            self.rombank = ((self.rombank & 0x60) | lower_bits) % self.rombanks;
+                        }
+                        0x4000..0x6000 => {
+                            if self.rombanks > 0x20 {
+                                let upper_bits = (value as usize & 0x03) % (self.rombanks >> 5);
+                                self.rombank = self.rombank & 0x1F | (upper_bits << 5);
+                            }
+                            if self.rambanks > 1 {
+                                self.rambank = (value as usize) & 0x03;
+                            }
+                        }
+                        0x6000..0x8000 => self.banking_mode = value & 0x01,
+                        _ => unreachable!()
+                    }
                 }
             }
-            0xA000..0xC000 => {}
+            0xA000..0xC000 => {
+                if self.mbc == MBC1 {
+                   if !self.ram_enabled {return}
+                    let bank = if self.banking_mode == 1 {self.rambank} else {0};
+                    let address = (bank * 0x2000) | (address & 0x1FFF);
+                    if address < self.ram.len() {
+                        self.ram[address] = value;
+                    }
+                }
+            }
             0xC000..=0xDDFF => {
                 self.memory[address] = value;
                 self.memory[address + 0x2000] = value;
@@ -195,13 +294,33 @@ impl Memory {
         let data_len = cartridge_data.len();
         self.start_cartridge
             .copy_from_slice(&cartridge_data[0x0000..=0x00FF]);
+        
+        if self.mbc == MBC0 {
+            self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
+            self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
+        } else if self.mbc == MBC1 {
+            self.rom = cartridge_data.to_vec();
+            self.rom[0x0000..=0x00FF].copy_from_slice(&rom);
+            self.rombanks = if self.rom[0x148] <= 8 {2 << self.rom[0x148]} else {0};
+            self.rambanks = match self.rom[0x149] {
+                1 => 1,
+                2 => 1,
+                3 => 4,
+                4 => 16,
+                5 => 8,
+                _ => 0,
+            };
+            self.ram.resize(self.rambanks * 0x2000, 0u8);
+        }
 
-        self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
-        self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
     }
 
     pub fn disable_rom(&mut self) {
-        self.memory[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
+        if self.mbc == MBC0 {
+            self.memory[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
+        } else if self.mbc == MBC1 {
+            self.rom[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
+        }
     }
 
     pub fn get_serial_output(&self) -> &SerialOutput {

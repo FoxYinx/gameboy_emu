@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(&event_loop)?,
     );
 
-    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/mbc0/drmario.gb");
+    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/mbc1/dragonslair.gb");
 
     let window_clone = Arc::clone(&window);
     event_loop.run(move |event, elwt| {

@@ -34,7 +34,7 @@ impl Gameboy {
         self.memory.write_cartridge(&cartridge_data);
 
         let title_bytes: Vec<u8> = (0x0134..=0x0143)
-            .filter_map(|addr| self.memory.get(addr).copied())
+            .filter_map(|addr| cartridge_data.get(addr).copied())
             .collect();
         if let Ok(title) = String::from_utf8(title_bytes) {
             println!("Game Title: {}", title);
@@ -43,7 +43,7 @@ impl Gameboy {
         }
 
         let manufacturer_bytes: Vec<u8> = (0x013F..=0x0142)
-            .filter_map(|addr| self.memory.get(addr).copied())
+            .filter_map(|addr| cartridge_data.get(addr).copied())
             .collect();
         if let Ok(code) = String::from_utf8(manufacturer_bytes) {
             println!("Manufacturer Code: {}", code);
@@ -51,22 +51,22 @@ impl Gameboy {
             println!("Failed to read manufacturer code.");
         }
 
-        let cartridge_type = self.memory.get(0x0147).unwrap_or(&0);
+        let cartridge_type = cartridge_data.get(0x0147).unwrap_or(&0);
         println!(
             "Hardware present: {}",
             cartridge_type_decoder(*cartridge_type)
         );
 
-        let rom_size = self.memory.get(0x0148).unwrap_or(&0);
+        let rom_size = cartridge_data.get(0x0148).unwrap_or(&0);
         println!("Rom size: {}", rom_size_decoder(*rom_size));
 
-        let ram_size = self.memory.get(0x0149).unwrap_or(&0);
+        let ram_size = cartridge_data.get(0x0149).unwrap_or(&0);
         println!("Ram size: {}", ram_size_decoder(*ram_size));
 
-        let destination_code = self.memory.get(0x014A).unwrap_or(&0);
+        let destination_code = cartridge_data.get(0x014A).unwrap_or(&0);
         println!("Destination: {}", destination_decoder(*destination_code));
 
-        let old_licensee_code = self.memory.get(0x014B).unwrap_or(&0);
+        let old_licensee_code = cartridge_data.get(0x014B).unwrap_or(&0);
         if *old_licensee_code != 0x33 {
             println!(
                 "Licensee: {}",
@@ -74,7 +74,7 @@ impl Gameboy {
             );
         } else {
             let new_licensee_bytes: Vec<u8> = (0x0144..=0x0145)
-                .filter_map(|addr| self.memory.get(addr).copied())
+                .filter_map(|addr| cartridge_data.get(addr).copied())
                 .collect();
             if let Ok(new_licensee) = String::from_utf8(new_licensee_bytes) {
                 println!("Licensee: {}", new_licensee_code_decryption(new_licensee));
@@ -83,10 +83,10 @@ impl Gameboy {
             }
         }
 
-        let version_number = self.memory.get(0x014C).unwrap_or(&0);
+        let version_number = cartridge_data.get(0x014C).unwrap_or(&0);
         println!("Version number: {}", *version_number);
 
-        if let Some(header_checksum) = self.memory.get(0x014D) {
+        if let Some(header_checksum) = cartridge_data.get(0x014D) {
             if *header_checksum != 0x00 {
                 self.cpu.registers.set_h(true);
                 self.cpu.registers.set_c(true);
