@@ -1,7 +1,9 @@
+use std::cmp::PartialEq;
 use crate::components::memory::Memory;
 use crate::components::ppu::PpuMode::*;
 use crate::window::emulator_app::{HEIGHT, WIDTH};
 
+#[derive(PartialEq, Clone)]
 enum PpuMode {
     OAMScan,
     PixelDrawing,
@@ -10,8 +12,10 @@ enum PpuMode {
 }
 
 pub struct PPU {
+    prev_mode: PpuMode,
     mode: PpuMode,
     pub framebuffer: [u8; (WIDTH * HEIGHT * 4) as usize],
+    prev_line: u8,
     line: u8,
     mode_clock: u64,
     window_line_counter: u8,
@@ -20,8 +24,10 @@ pub struct PPU {
 impl PPU {
     pub fn new() -> Self {
         PPU {
+            prev_mode: VBlank,
             mode: OAMScan,
             framebuffer: [0; (WIDTH * HEIGHT * 4) as usize],
+            prev_line: 153,
             line: 0,
             mode_clock: 0,
             window_line_counter: 0,
@@ -39,7 +45,9 @@ impl PPU {
 
                     if self.mode_clock >= 80 {
                         self.mode_clock -= 80;
+                        self.prev_mode = self.mode.clone();
                         self.mode = PixelDrawing;
+                        self.update_stat(memory);
                     } else {
                         break;
                     }
@@ -51,7 +59,9 @@ impl PPU {
 
                     if self.mode_clock >= 172 {
                         self.mode_clock -= 172;
+                        self.prev_mode = self.mode.clone();
                         self.mode = HBlank;
+                        self.update_stat(memory);
                         self.render_scanline(memory);
                     } else {
                         break;
@@ -66,10 +76,11 @@ impl PPU {
                         self.mode_clock -= 204;
                         self.line += 1;
                         memory.write_memory(0xFF44, self.line);
-                        self.update_stat(memory);
 
                         if self.line >= 144 {
+                            self.prev_mode = self.mode.clone();
                             self.mode = VBlank;
+                            self.update_stat(memory);
                             self.window_line_counter = 0;
                             
                             //fixme: This code makes alleywey not run...
@@ -81,7 +92,9 @@ impl PPU {
                                 }
                             }
                         } else {
+                            self.prev_mode = self.mode.clone();
                             self.mode = OAMScan;
+                            self.update_stat(memory);
                         }
                     } else {
                         break;
@@ -100,6 +113,7 @@ impl PPU {
 
                         if self.line > 153 {
                             self.line = 0;
+                            self.prev_mode = self.mode.clone();
                             self.mode = OAMScan;
                             memory.write_memory(0xFF44, self.line);
                             self.update_stat(memory);
@@ -112,25 +126,54 @@ impl PPU {
         }
     }
 
-    //fixme: add interrupts when entering new mode
     fn update_stat(&mut self, memory: &mut Memory) {
         let lcdc = memory.get(0xFF40).copied().unwrap_or(0);
         let lyc = memory.get(0xFF45).copied().unwrap_or(0);
-        if let Some(stat) = memory.get_mut(0xFF41) {
-            if (*stat & 0x08 != 0) || (*stat & 0x20 != 0) || (*stat & 0x10 != 0) {
-                println!("stat is {:#04X}", *stat);
-                panic!("Unimplemented interrupt!");
-            }
 
-            if (lcdc & 0x80) == 0 {
-                *stat = (*stat & 0b1111_1100) | 0b01;
-                self.framebuffer.fill(0xFF);
-            } else if self.line == lyc {
+        if (lcdc & 0x80) == 0 {
+            if let Some(stat_reg) = memory.get_mut(0xFF41) {
+                *stat_reg = (*stat_reg & 0b1111_1100) | 0b01;
+                *stat_reg &= !0x04;
+            }
+            self.framebuffer.fill(0xFF);
+            return;
+        }
+
+        if self.line != self.prev_line {
+            if let Some(stat_reg) = memory.get_mut(0xFF41) {
+                *stat_reg &= !0x04;
+                if self.line == lyc {
+                    *stat_reg |= 0x04;
+                }
+            }
+            self.prev_line = self.line;
+        }
+
+        if let Some(stat) = memory.get_mut(0xFF41) {
+            if self.line == lyc {
                 *stat |= 0x04;
                 if (*stat & 0x40) != 0 {
                     if let Some(flag) = memory.get_mut(0xFF0F) {
                         *flag |= 0x02;
                     }
+                }
+            }
+        }
+
+        if self.mode != self.prev_mode {
+            let mut trigger_interrupt = false;
+            let stat = memory.get(0xFF41).unwrap_or(&0);
+
+            match self.mode {
+                OAMScan if (stat & 0x20) != 0 => trigger_interrupt = true, // Mode 2
+                VBlank if (stat & 0x10) != 0 => trigger_interrupt = true,   // Mode 1
+                HBlank if (stat & 0x08) != 0 => trigger_interrupt = true,   // Mode 0
+                _ => {}
+            }
+
+            if trigger_interrupt {
+                if let Some(flag) = memory.get_mut(0xFF0F) {
+                    *flag |= 0x02;
                 }
             }
         }
