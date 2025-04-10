@@ -118,8 +118,9 @@ impl Memory {
                     self.rom.get(idx)
                 }
                 0xA000..0xC000 => {
+                    if !self.ram_enabled {return Some(&0xFFu8)};
                     let bank = if self.banking_mode == 1 {self.rambank} else {0};
-                    let idx = (bank * 0x2000) | (index & 0x1FFFF);
+                    let idx = (bank * 0x2000) | (index & 0x1FFF);
                     self.ram.get(idx)
                 }
                 _ => self.memory.get(index)
@@ -149,8 +150,9 @@ impl Memory {
                     self.rom.get_mut(idx)
                 }
                 0xA000..0xC000 => {
+                    if !self.ram_enabled {return None};
                     let bank = if self.banking_mode == 1 {self.rambank} else {0};
-                    let idx = (bank * 0x2000) | (index & 0x1FFFF);
+                    let idx = (bank * 0x2000) | (index & 0x1FFF);
                     self.ram.get_mut(idx)
                 }
                 _ => self.memory.get_mut(index)
