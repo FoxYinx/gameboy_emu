@@ -125,6 +125,25 @@ impl Memory {
                 }
                 _ => self.memory.get(index)
             }
+        } else if self.mbc == MBC5 {
+            match index {
+                0x0000..0x8000 => {
+                    let bank = if index < 0x4000 {
+                        0
+                    } else {
+                        self.rombank & 0x1FF
+                    };
+                    let idx = (bank * 0x4000) | (index & 0x3FFF);
+                    self.rom.get(idx)
+                }
+                0xA000..0xC000 => {
+                    if !self.ram_enabled {return Some(&0xFFu8)};
+                    let bank = if self.banking_mode == 1 {self.rambank} else {0};
+                    let idx = (bank * 0x2000) | (index & 0x1FFF);
+                    self.ram.get(idx)
+                }
+                _ => self.memory.get(index)
+            }
         } else {
             None
         }
@@ -145,6 +164,25 @@ impl Memory {
                         }
                     } else {
                         self.rombank
+                    };
+                    let idx = (bank * 0x4000) | (index & 0x3FFF);
+                    self.rom.get_mut(idx)
+                }
+                0xA000..0xC000 => {
+                    if !self.ram_enabled {return None};
+                    let bank = if self.banking_mode == 1 {self.rambank} else {0};
+                    let idx = (bank * 0x2000) | (index & 0x1FFF);
+                    self.ram.get_mut(idx)
+                }
+                _ => self.memory.get_mut(index)
+            }
+        } else if self.mbc == MBC5 {
+            match index {
+                0x0000..0x8000 => {
+                    let bank = if index < 0x4000 {
+                        0
+                    } else {
+                        self.rombank & 0x1FF
                     };
                     let idx = (bank * 0x4000) | (index & 0x3FFF);
                     self.rom.get_mut(idx)
@@ -187,10 +225,18 @@ impl Memory {
                         0x6000..0x8000 => self.banking_mode = value & 0x01,
                         _ => unreachable!()
                     }
+                } else if self.mbc == MBC5 {
+                    match address {
+                        0x0000..0x2000 => self.ram_enabled = value & 0xF == 0xA,
+                        0x2000..0x3000 => self.rombank = (self.rombank & 0x100) | (value as usize),
+                        0x3000..0x4000 => self.rombank = (self.rombank & 0x0FF) | (value as usize),
+                        0x4000..0x6000 => self.rambank = (value & 0x0F) as usize,
+                        _ => {},
+                    }
                 }
             }
             0xA000..0xC000 => {
-                if self.mbc == MBC1 {
+                if self.mbc == MBC1 || self.mbc == MBC5 {
                    if !self.ram_enabled {return}
                     let bank = if self.banking_mode == 1 {self.rambank} else {0};
                     let address = (bank * 0x2000) | (address & 0x1FFF);
@@ -300,10 +346,10 @@ impl Memory {
         if self.mbc == MBC0 {
             self.memory[0x0000..=0x00FF].copy_from_slice(&rom);
             self.memory[0x0100..data_len].copy_from_slice(&cartridge_data[0x0100..data_len]);
-        } else if self.mbc == MBC1 {
+        } else if self.mbc == MBC1 || self.mbc == MBC5 {
             self.rom = cartridge_data.to_vec();
             self.rom[0x0000..=0x00FF].copy_from_slice(&rom);
-            self.rombanks = if self.rom[0x148] <= 8 {2 << self.rom[0x148]} else {0};
+            self.rombanks = if self.rom[0x148] <= 8 { 2 << self.rom[0x148] } else { 0 };
             self.rambanks = match self.rom[0x149] {
                 1 => 1,
                 2 => 1,
@@ -314,13 +360,12 @@ impl Memory {
             };
             self.ram.resize(self.rambanks * 0x2000, 0u8);
         }
-
     }
 
     pub fn disable_rom(&mut self) {
         if self.mbc == MBC0 {
             self.memory[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
-        } else if self.mbc == MBC1 {
+        } else if self.mbc == MBC1 || self.mbc == MBC5 {
             self.rom[0x0000..=0x00FF].copy_from_slice(&self.start_cartridge);
         }
     }
