@@ -27,9 +27,16 @@ impl<'a> EmulatorApp<'a> {
 
         let (tx_pixels, rx_pixels) = mpsc::channel();
         let (tx_inputs, rx_inputs) = mpsc::channel();
-
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+        let (tx_audio, rx_audio) = mpsc::channel();
+        
+        thread::spawn(move || {
+            let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+            let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+            
+            while let Ok(samples) = rx_audio.recv() {
+                sink.append(rodio::buffer::SamplesBuffer::new(1, 44100, samples));
+            }
+        });
 
         thread::spawn(move || {
             let frame_duration = Duration::from_secs_f64(1.0 / 60.0);
@@ -59,7 +66,9 @@ impl<'a> EmulatorApp<'a> {
                     let mut samples = vec![0i16; available as usize];
                     gameboy.apu.channel1.buffer.read_samples(&mut samples, false);
                     let samples_f32: Vec<f32> = samples.iter().map(|s| *s as f32 / 32768.0).collect();
-                    sink.append(rodio::buffer::SamplesBuffer::new(1, 44100, samples_f32));
+                    if tx_audio.send(samples_f32).is_err() {
+                        break
+                    }
                 }
 
                 let elapsed = start_time.elapsed();
