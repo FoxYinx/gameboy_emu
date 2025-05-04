@@ -3,3 +3,4 @@ pub mod gameboy;
 mod memory;
 mod ppu;
 mod registers;
+mod apu;

@@ -4,6 +4,7 @@ use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
+use rodio::OutputStream;
 use winit::event::ElementState;
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::Window;
@@ -27,6 +28,9 @@ impl<'a> EmulatorApp<'a> {
         let (tx_pixels, rx_pixels) = mpsc::channel();
         let (tx_inputs, rx_inputs) = mpsc::channel();
 
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+
         thread::spawn(move || {
             let frame_duration = Duration::from_secs_f64(1.0 / 60.0);
             let cycles_per_frame = 69904;
@@ -48,6 +52,14 @@ impl<'a> EmulatorApp<'a> {
 
                 if tx_pixels.send(pixels).is_err() {
                     break;
+                }
+
+                let available = gameboy.apu.channel1.buffer.samples_avail();
+                if available > 0 {
+                    let mut samples = vec![0i16; available as usize];
+                    gameboy.apu.channel1.buffer.read_samples(&mut samples, false);
+                    let samples_f32: Vec<f32> = samples.iter().map(|s| *s as f32 / 32768.0).collect();
+                    sink.append(rodio::buffer::SamplesBuffer::new(1, 44100, samples_f32));
                 }
 
                 let elapsed = start_time.elapsed();

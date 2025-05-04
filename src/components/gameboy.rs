@@ -1,3 +1,4 @@
+use crate::components::apu::APU;
 use crate::components::cpu::CPU;
 use crate::components::memory::Memory;
 use crate::components::ppu::PPU;
@@ -10,8 +11,9 @@ use crate::utils::licensee::{new_licensee_code_decryption, old_licensee_code_dec
 pub struct Gameboy {
     cpu: CPU,
     pub(crate) ppu: PPU,
+    pub(crate) apu: APU,
     memory: Memory,
-    pub(crate) cycles: u64,
+    pub(crate) cycles: u64
 }
 
 impl Gameboy {
@@ -19,8 +21,9 @@ impl Gameboy {
         Gameboy {
             cpu: CPU::new(),
             ppu: PPU::new(),
+            apu: APU::new(),
             memory: Memory::new(),
-            cycles: 0,
+            cycles: 0
         }
     }
 
@@ -39,7 +42,7 @@ impl Gameboy {
         if let Ok(title) = String::from_utf8(title_bytes) {
             println!("Game Title: {}", title);
         } else {
-            println!("Failed to read game title.");
+            println!("Failed to read the game title.");
         }
 
         let manufacturer_bytes: Vec<u8> = (0x013F..=0x0142)
@@ -139,6 +142,10 @@ impl Gameboy {
             self.cpu.check_interrupts(&mut self.memory);
 
             self.ppu.step(cycles, &mut self.memory);
+
+            /*APU Area*/
+            self.apu.step(cycles);
+            /*End APU Area*/
 
             self.cycles += cycles;
             if self.cpu.registers.pc == 0x0100 {
