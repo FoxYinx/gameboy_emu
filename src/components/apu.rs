@@ -1,3 +1,4 @@
+use crate::components::memory::Memory;
 use blip_buf::BlipBuf;
 
 const CLOCK_RATE : f64 = 4_194_304.0;
@@ -8,13 +9,13 @@ pub struct SquareWave {
     pub(crate) buffer: BlipBuf,
     phase: f64,
     frequency: f64,
-    amplitude: f64,
+    duty: f64,
     volume: f64,
 }
 
 impl SquareWave {
     fn new() -> Self {
-        let mut  buffer = BlipBuf::new(SAMPLE_RATE);
+        let mut buffer = BlipBuf::new(SAMPLE_RATE);
         buffer.set_rates(CLOCK_RATE, SAMPLE_RATE as f64);
 
         SquareWave {
@@ -22,15 +23,29 @@ impl SquareWave {
             buffer,
             phase: 0.0,
             frequency: 440.0,
-            amplitude: 0.5,
-            volume: 0.5,
+            duty: 0.5,
+            volume: 0.15,
         }
     }
 
-    pub fn render(&mut self, cycles: u64) {
+    fn check_duty(&mut self, memory: &mut Memory) {
+        if let Some(nr11) = memory.get(0xFF11) {
+            self.duty =  match (nr11 >> 6) & 0b11u8 {
+                0 => 0.125,
+                1 => 0.25,
+                2 => 0.5,
+                3 => 0.75,
+                _ => unreachable!(),
+            };
+        }
+    }
+
+    pub fn render(&mut self, cycles: u64, memory: &mut Memory) {
         if !self.enabled {
             return;
         }
+
+        self.check_duty(memory);
 
         let period = 1.0 / self.frequency;
         let mut current_time: u32 = 0;
@@ -43,8 +58,8 @@ impl SquareWave {
                 self.phase -= period;
             }
             
-            let was_high = (old_phase / period) < self.amplitude;
-            let is_high = (self.phase / period) < self.amplitude;
+            let was_high = (old_phase / period) < self.duty;
+            let is_high = (self.phase / period) < self.duty;
             
             if was_high != is_high {
                 let value = if is_high { self.volume } else { -self.volume };
@@ -73,7 +88,7 @@ impl APU {
         }
     }
     
-    pub fn step(&mut self, cycles: u64) {
-        self.channel1.render(cycles);
+    pub fn step(&mut self, cycles: u64, memory: &mut Memory) {
+        self.channel1.render(cycles, memory);
     }
 }

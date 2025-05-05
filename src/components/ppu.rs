@@ -1,7 +1,7 @@
-use std::cmp::PartialEq;
 use crate::components::memory::Memory;
 use crate::components::ppu::PpuMode::*;
 use crate::window::emulator_app::{HEIGHT, WIDTH};
+use std::cmp::PartialEq;
 
 #[derive(PartialEq, Clone)]
 enum PpuMode {

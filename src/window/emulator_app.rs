@@ -1,10 +1,10 @@
 use crate::components::gameboy::Gameboy;
 use pixels::{Pixels, SurfaceTexture};
+use rodio::OutputStream;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
-use rodio::OutputStream;
 use winit::event::ElementState;
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::Window;

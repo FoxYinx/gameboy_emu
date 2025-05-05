@@ -144,7 +144,7 @@ impl Gameboy {
             self.ppu.step(cycles, &mut self.memory);
 
             /*APU Area*/
-            self.apu.step(cycles);
+            self.apu.step(cycles, &mut self.memory);
             /*End APU Area*/
 
             self.cycles += cycles;
