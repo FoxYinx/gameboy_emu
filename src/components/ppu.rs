@@ -247,22 +247,22 @@ impl PPU {
             let color_id = (color_bit_high << 1) | color_bit_low;
 
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
-            let color = if !bg_window_enable {
-                0xFF
+            let (red, green, blue) = if !bg_window_enable {
+                (0x9B, 0xBC, 0x0F)
             } else {
                 match (bgp >> (color_id * 2)) & 0b11 {
-                    0 => 0xFF,
-                    1 => 0xAA,
-                    2 => 0x55,
-                    3 => 0x00,
-                    _ => 0xFF,
+                    0 => (0x9B, 0xBC, 0x0F),
+                    1 => (0x8B, 0xAC, 0x0F),
+                    2 => (0x30, 0x62, 0x30),
+                    3 => (0x0F, 0x38, 0x0F),
+                    _ => (0x9B, 0xBC, 0x0F),
                 }
             };
 
             let index = (self.line as usize * WIDTH as usize + x as usize) * 4;
-            self.framebuffer[index] = color;
-            self.framebuffer[index + 1] = color;
-            self.framebuffer[index + 2] = color;
+            self.framebuffer[index] = red;
+            self.framebuffer[index + 1] = green;
+            self.framebuffer[index + 2] = blue;
             self.framebuffer[index + 3] = 0xFF;
         }
 
@@ -320,12 +320,12 @@ impl PPU {
                         memory.get(0xFF48).copied().unwrap_or(0)
                     };
 
-                    let color = match (obp >> (color_id * 2)) & 0b11 {
-                        0 => 0xFF,
-                        1 => 0xAA,
-                        2 => 0x55,
-                        3 => 0x00,
-                        _ => 0xFF,
+                    let (red, green, blue) = match (obp >> (color_id * 2)) & 0b11 {
+                        0 => (0x9B, 0xBC, 0x0F),
+                        1 => (0x8B, 0xAC, 0x0F),
+                        2 => (0x30, 0x62, 0x30),
+                        3 => (0x0F, 0x38, 0x0F),
+                        _ => (0x9B, 0xBC, 0x0F),
                     };
 
                     let pixel_x = x_pos.wrapping_sub(8).wrapping_add(x as u8);
@@ -333,9 +333,9 @@ impl PPU {
                         let index = (self.line as usize * WIDTH as usize + pixel_x as usize) * 4;
 
                         if (attributes & 0x80) == 0 || self.framebuffer[index] == 0xFF {
-                            self.framebuffer[index] = color;
-                            self.framebuffer[index + 1] = color;
-                            self.framebuffer[index + 2] = color;
+                            self.framebuffer[index] = red;
+                            self.framebuffer[index + 1] = green;
+                            self.framebuffer[index + 2] = blue;
                             self.framebuffer[index + 3] = 0xFF;
                         }
                     }
