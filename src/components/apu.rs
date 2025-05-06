@@ -1,153 +1,291 @@
 use crate::components::memory::Memory;
 use blip_buf::BlipBuf;
 
-const CLOCK_RATE : f64 = 4_194_304.0;
+const WAVE_PATTERN : [[i32; 8]; 4] = [[-1,-1,-1,-1,1,-1,-1,-1],[-1,-1,-1,-1,1,1,-1,-1],[-1,-1,1,1,1,1,-1,-1],[1,1,1,1,-1,-1,1,1]];
+const CLOCK_RATE : u32 = 4_194_304;
+const CLOCK_PER_FRAME: u32 = CLOCK_RATE / 512;
 const SAMPLE_RATE : u32 = 44100;
+
+struct VolumeEnvelope {
+    period: u8,
+    goes_up: bool,
+    delay: u8,
+    initial_volume: u8,
+    volume: u8,
+}
+
+impl VolumeEnvelope {
+    fn new() -> Self {
+        VolumeEnvelope {
+            period: 0,
+            goes_up: false,
+            delay: 0,
+            initial_volume: 0,
+            volume: 0,
+        }
+    }
+    
+    fn get(&self, address: u16) -> u8 {
+        match address {
+            0xFF12 | 0xFF17 | 0xFF21 => {
+                ((self.initial_volume & 0xF) << 4) |
+                if self.goes_up { 0x08 } else { 0 } |
+                (self.period & 0x7)
+            },
+            _ => unreachable!(),
+        }
+    }
+    
+    fn write(&mut self, address: u16, value: u8) {
+        match address {
+            0xFF12 | 0xFF17 | 0xFF21 => {
+                self.period = value & 0x7;
+                self.goes_up = (value >> 7) & 1 != 0;
+                self.initial_volume = value >> 4;
+                self.volume = self.initial_volume;
+            },
+            0xFF14 | 0xFF19 | 0xFF23 if value & 0x80 != 0 => {
+                self.delay = self.period;
+                self.volume = self.initial_volume;
+            }
+            _ => (),
+        }
+    }
+    
+    fn step(&mut self) {
+        if self.delay > 1 {
+            self.delay -= 1;
+        } else if self.delay == 1 {
+            self.delay = self.period;
+            if self.goes_up && self.volume < 15 {
+                self.volume += 1;
+            } else if !self.goes_up && self.volume > 0{
+                self.volume -= 1;
+            }
+        }
+    }
+}
+
+struct LengthTimer {
+    enabled: bool,
+    value: u16,
+    max: u16
+}
+
+impl LengthTimer {
+    fn new(max: u16) -> Self {
+        LengthTimer {
+            enabled: false,
+            value: 0,
+            max,
+        }
+    }
+    
+    fn is_active(&self) -> bool {
+        self.value > 0
+    }
+    
+    fn extra_step(frame_step: u8) -> bool {
+        frame_step % 2 == 1
+    }
+    
+    fn enable(&mut self, enable: bool, frame_step: u8) {
+        let was_enabled = self.enabled;
+        self.enabled = enable;
+        if !was_enabled && LengthTimer::extra_step(frame_step) {
+            self.step();
+        }
+    }
+    
+    fn set(&mut self, minus_value: u8) {
+        self.value = self.max - minus_value as u16;
+    }
+    
+    fn trigger(&mut self, frame_step: u8) {
+        if self.value == 0 {
+            self.value = self.max;
+            if LengthTimer::extra_step(frame_step) {
+                self.step();
+            }
+        }
+    }
+    
+    fn step(&mut self) {
+        if self.enabled && self.value > 0 {
+            self.value -= 1;
+        }
+    }
+}
 
 pub struct SquareWave {
     enabled: bool,
+    duty: u8,
+    phase: u8,
+    length_timer: LengthTimer,
+    volume_envelope: VolumeEnvelope,
+    frequency: u16,
+    period: u32,
+    last_amp: i32,
+    delay: u32,
     pub(crate) buffer: BlipBuf,
-    phase: f64,
-    frequency: f64,
-    duty: f64,
-    volume: f64,
-    length_timer: u16,
-    envelope_volume: u8,
-    envelope_pace: u8,
-    envelope_direction: bool,
-    period_value: u16,
-    length_enable: bool
 }
 
 impl SquareWave {
     fn new() -> Self {
         let mut buffer = BlipBuf::new(SAMPLE_RATE);
-        buffer.set_rates(CLOCK_RATE, SAMPLE_RATE as f64);
+        buffer.set_rates(CLOCK_RATE as f64, SAMPLE_RATE as f64);
 
         SquareWave {
             enabled: true,
-            buffer,
-            phase: 0.0,
-            frequency: 440.0,
-            duty: 0.5,
-            volume: 0.15,
-            length_timer: 0,
-            envelope_volume: 0,
-            envelope_pace: 0,
-            envelope_direction: false,
-            period_value: 0,
-            length_enable: false,
+            duty: 1,
+            phase: 1,
+            length_timer: LengthTimer::new(64),
+            volume_envelope: VolumeEnvelope::new(),
+            frequency: 0,
+            period: 0,
+            last_amp: 0,
+            delay: 0,
+            buffer
         }
     }
 
     fn handle_nr21(&mut self, value: u8) {
-        self.duty =  match (value >> 6) & 0b11 {
-            0 => 0.125,
-            1 => 0.25,
-            2 => 0.5,
-            3 => 0.75,
-            _ => unreachable!(),
-        };
-        self.length_timer = 64 - (value & 0x3F) as u16
+        self.duty = value >> 6;
+        self.length_timer.set(value & 0x3F);
     }
     
     fn handle_nr22(&mut self, value: u8) {
-        self.envelope_volume = value >> 4;
-        self.envelope_direction = (value >> 3) & 1 != 0;
-        self.envelope_pace = value & 0b111;
+        self.volume_envelope.write(0xFF17, value);
     }
     
     fn handle_nr23(&mut self, value: u8) {
-        self.period_value = (self.period_value & 0x0700) | (value as u16);
-        self.update_frequency();
+        self.frequency = (self.frequency & 0x0700) | (value as u16);
+        self.calculate_period();
     }
     
-    fn handle_nr24(&mut self, value: u8) {
-        self.period_value = (self.period_value & 0x00FF) | (((value & 0b111) as u16) << 8);
-        self.length_enable = (value >> 6) & 1 != 0;
+    fn handle_nr24(&mut self, value: u8, frame_step: u8) {
+        self.frequency = (self.frequency & 0x00FF) | (((value & 0b111) as u16) << 8);
+        self.length_timer.enable((value >> 6) & 1 != 0, frame_step);
+        self.enabled &= self.length_timer.enabled;
+        
         if (value >> 7) & 1 != 0 {
-            self.trigger();
+            self.length_timer.trigger(frame_step);
         }
-        self.update_frequency();
+        self.calculate_period();
     }
     
-    fn update_frequency(&mut self) {
-        self.frequency = 131072.0 / (2048.0 - self.period_value as f64);
+    fn calculate_period(&mut self) {
+        if self.frequency > 2047 {
+            self.period = 0;
+        } else {
+            self.period = (2048 - self.frequency as u32) * 4;
+        }
     }
     
-    fn trigger(&mut self) {
-        self.enabled = true;
-        self.phase = 0.0;
-        self.length_timer = 64;
-        self.envelope_volume = (self.volume * 15.0) as u8;
+    fn step_length(&mut self) {
+        self.length_timer.step();
+        self.enabled &= self.length_timer.enabled;
     }
 
-    pub fn render(&mut self, cycles: u64, memory: &mut Memory) {
-        if !self.enabled {
-            return;
-        }
-
-        self.handle_nr21(*memory.get(0xFF16).unwrap());
-        self.handle_nr22(*memory.get(0xFF17).unwrap());
-        self.handle_nr23(*memory.get(0xFF18).unwrap());
-        self.handle_nr24(*memory.get(0xFF19).unwrap());
-        
-        self.length_timer = self.length_timer.saturating_sub(1);
-        if self.length_timer == 0 && self.length_enable {
-            self.enabled = false;
-        }
-        
-        if cycles % 64 == 0 && self.envelope_pace > 0{
-            if self.envelope_direction {
-                self.envelope_volume = self.envelope_volume.saturating_add(1);
-            } else { 
-                self.envelope_volume = self.envelope_volume.saturating_sub(1);
+    pub fn run(&mut self, memory: &mut Memory, frame_step: u8, start_time: u32, end_time: u32) {
+        if !self.enabled || self.period == 0 {
+            if self.last_amp != 0 {
+                self.buffer.add_delta(start_time, -self.last_amp);
+                self.last_amp = 0;
+                self.delay = 0;
             }
-            self.volume = self.envelope_volume as f64 / 15.0;
-        }
+        } else {
+            self.handle_nr21(*memory.get(0xFF16).unwrap());
+            self.handle_nr22(*memory.get(0xFF17).unwrap());
+            self.handle_nr23(*memory.get(0xFF18).unwrap());
+            self.handle_nr24(*memory.get(0xFF19).unwrap(), frame_step);
 
-        let period = 1.0 / self.frequency;
-        let mut current_time: u32 = 0;
+            let mut time = start_time + self.delay;
+            let pattern = WAVE_PATTERN[self.duty as usize];
+            let vol = self.volume_envelope.volume as i32;
 
-        for _ in 0..cycles {
-            let old_phase = self.phase;
-            self.phase += 1.0 / CLOCK_RATE;
-            
-            if self.phase >= period {
-                self.phase -= period;
+            while time < end_time {
+                let amp = vol * pattern[self.phase as usize];
+                if amp != self.last_amp {
+                    self.buffer.add_delta(time, amp - self.last_amp);
+                    self.last_amp = amp;
+                }
+                time += self.period;
+                self.phase = (self.phase + 1) % 8;
             }
             
-            let was_high = (old_phase / period) < self.duty;
-            let is_high = (self.phase / period) < self.duty;
-            
-            if was_high != is_high {
-                let value = if is_high { self.volume } else { -self.volume };
-                self.buffer.add_delta(
-                    current_time,
-                    (value * 32767.0) as i32,
-                );
-            }
-
-            current_time = current_time.wrapping_add(1);
+            self.delay = time - end_time;
         }
-
-        self.buffer.end_frame(cycles as u32);
     }
 }
 
 
 pub struct APU {
+    enabled: bool,
+    time: u32,
+    prev_time: u32,
+    next_time: u32,
+    frame_step: u8,
+    output_period: u32,
     pub(crate) channel2: SquareWave,
 }
 
 impl APU {
     pub fn new() -> Self {
+        //fixme: revoir ça
+        let output_period = ((SAMPLE_RATE as u64 * CLOCK_RATE as u64) / (SAMPLE_RATE as u64)) as u32;
+        
         APU {
+            enabled: true,
+            time: 0,
+            prev_time: 0,
+            next_time: CLOCK_PER_FRAME,
+            frame_step: 0,
+            output_period,
             channel2: SquareWave::new(),
         }
     }
     
-    pub fn step(&mut self, cycles: u64, memory: &mut Memory) {
-        self.channel2.render(cycles, memory);
+    pub fn step(&mut self, cycles: u32, memory: &mut Memory) {
+        if !self.enabled {
+            return;
+        }
+        
+        self.time += cycles;
+        if self.time >= self.output_period {
+            self.do_output(memory);
+        }
+    }
+    
+    fn do_output(&mut self, memory: &mut Memory) {
+        self.run(memory);
+        
+        self.channel2.buffer.end_frame(self.time);
+        self.next_time -= self.time;
+        self.time = 0;
+        self.prev_time = 0;
+    }
+    
+    fn run(&mut self, memory: &mut Memory) {
+        while self.next_time <= self.time {
+            self.channel2.run(memory, self.frame_step, self.prev_time, self.next_time);
+            
+            if self.frame_step % 2 == 0 {
+                self.channel2.step_length();
+            }
+            if self.frame_step == 7 {
+                self.channel2.volume_envelope.step();
+            }
+            
+            self.frame_step = (self.frame_step + 1) % 8;
+            self.prev_time = self.next_time;
+            self.next_time += CLOCK_PER_FRAME;
+        }
+        
+        if self.prev_time != self.time {
+            self.channel2.run(memory, self.frame_step, self.prev_time, self.time);
+            
+            self.prev_time = self.time;
+        }
     }
 }
