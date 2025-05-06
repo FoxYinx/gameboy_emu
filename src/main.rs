@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build(&event_loop)?,
     );
 
-    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/games/mbc5/pokemonbleu.gb");
+    let mut emulator_app = EmulatorApp::new(&window, "resources/roms/blargg/dmg_sound/rom_singles/02-len ctr.gb");
 
     let window_clone = Arc::clone(&window);
     event_loop.run(move |event, elwt| {

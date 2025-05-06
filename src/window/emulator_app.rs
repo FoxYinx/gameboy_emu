@@ -61,10 +61,10 @@ impl<'a> EmulatorApp<'a> {
                     break;
                 }
 
-                let available = gameboy.apu.channel1.buffer.samples_avail();
+                let available = gameboy.apu.channel2.buffer.samples_avail();
                 if available > 0 {
                     let mut samples = vec![0i16; available as usize];
-                    gameboy.apu.channel1.buffer.read_samples(&mut samples, false);
+                    gameboy.apu.channel2.buffer.read_samples(&mut samples, false);
                     let samples_f32: Vec<f32> = samples.iter().map(|s| *s as f32 / 32768.0).collect();
                     if tx_audio.send(samples_f32).is_err() {
                         break
