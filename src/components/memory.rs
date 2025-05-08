@@ -35,7 +35,7 @@ enum Mbc {
 impl Memory {
     pub fn new() -> Self {
         let mut mem = Memory {
-            memory: [0; 0x10000],
+            memory: [0xFF; 0x10000],
             rom: Vec::new(),
             ram: Vec::new(),
             rombank: 1,

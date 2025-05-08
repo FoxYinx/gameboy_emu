@@ -247,14 +247,14 @@ impl PPU {
 
             let bgp = memory.get(0xFF47).copied().unwrap_or(0);
             let (red, green, blue) = if !bg_window_enable {
-                (0x9B, 0xBC, 0x0F)
+                (0x9A, 0x9E, 0x3F)
             } else {
                 match (bgp >> (color_id * 2)) & 0b11 {
-                    0 => (0x9B, 0xBC, 0x0F),
-                    1 => (0x8B, 0xAC, 0x0F),
-                    2 => (0x30, 0x62, 0x30),
-                    3 => (0x0F, 0x38, 0x0F),
-                    _ => (0x9B, 0xBC, 0x0F),
+                    0 => (0x9A, 0x9E, 0x3F),
+                    1 => (0x49, 0x6B, 0x22),
+                    2 => (0x0E, 0x45, 0x0B),
+                    3 => (0x1B, 0x2A, 0x09),
+                    _ => (0x9A, 0x9E, 0x3F),
                 }
             };
 
@@ -320,11 +320,11 @@ impl PPU {
                     };
 
                     let (red, green, blue) = match (obp >> (color_id * 2)) & 0b11 {
-                        0 => (0x9B, 0xBC, 0x0F),
-                        1 => (0x8B, 0xAC, 0x0F),
-                        2 => (0x30, 0x62, 0x30),
-                        3 => (0x0F, 0x38, 0x0F),
-                        _ => (0x9B, 0xBC, 0x0F),
+                        0 => (0x9A, 0x9E, 0x3F),
+                        1 => (0x49, 0x6B, 0x22),
+                        2 => (0x0E, 0x45, 0x0B),
+                        3 => (0x1B, 0x2A, 0x09),
+                        _ => (0x9A, 0x9E, 0x3F),
                     };
 
                     let pixel_x = x_pos.wrapping_sub(8).wrapping_add(x as u8);

@@ -24,6 +24,7 @@ impl<'a> EmulatorApp<'a> {
     pub(crate) fn new(window: &'a Window, rom_path: &str) -> Self {
         let mut gameboy = Gameboy::new();
         gameboy.cartridge_to_rom(rom_path.to_string());
+        //gameboy.toggle_debug_registers();
 
         let (tx_pixels, rx_pixels) = mpsc::channel();
         let (tx_inputs, rx_inputs) = mpsc::channel();
