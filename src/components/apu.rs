@@ -4,7 +4,8 @@ use blip_buf::BlipBuf;
 const WAVE_PATTERN : [[i32; 8]; 4] = [[-1,-1,-1,-1,1,-1,-1,-1],[-1,-1,-1,-1,1,1,-1,-1],[-1,-1,1,1,1,1,-1,-1],[1,1,1,1,-1,-1,1,1]];
 const CLOCK_RATE : u32 = 4_194_304;
 const CLOCK_PER_FRAME: u32 = CLOCK_RATE / 512;
-const SAMPLE_RATE : u32 = 44100;
+const OUTPUT_SAMPLE_COUNT : usize = 2_000;
+const SAMPLE_RATE : u32 = 44_100;
 
 struct VolumeEnvelope {
     period: u8,
@@ -119,6 +120,7 @@ impl LengthTimer {
 
 pub struct SquareWave {
     enabled: bool,
+    dac_enabled: bool,
     duty: u8,
     phase: u8,
     length_timer: LengthTimer,
@@ -132,11 +134,12 @@ pub struct SquareWave {
 
 impl SquareWave {
     fn new() -> Self {
-        let mut buffer = BlipBuf::new(SAMPLE_RATE);
+        let mut buffer = BlipBuf::new((OUTPUT_SAMPLE_COUNT + 1) as u32);
         buffer.set_rates(CLOCK_RATE as f64, SAMPLE_RATE as f64);
 
         SquareWave {
-            enabled: true,
+            enabled: false,
+            dac_enabled: false,
             duty: 1,
             phase: 1,
             length_timer: LengthTimer::new(64),
@@ -155,7 +158,8 @@ impl SquareWave {
     }
     
     fn handle_nr22(&mut self, value: u8) {
-        self.volume_envelope.write(0xFF17, value);
+        self.dac_enabled = value & 0xF8 != 0;
+        self.enabled &= self.dac_enabled;
     }
     
     fn handle_nr23(&mut self, value: u8) {
@@ -169,6 +173,10 @@ impl SquareWave {
         self.enabled &= self.length_timer.enabled;
         
         if (value >> 7) & 1 != 0 {
+            if self.dac_enabled {
+                self.enabled = true;
+            }
+            
             self.length_timer.trigger(frame_step);
         }
         self.calculate_period();
@@ -186,8 +194,19 @@ impl SquareWave {
         self.length_timer.step();
         self.enabled &= self.length_timer.enabled;
     }
+    
+    fn write(&mut self, address: u16, value: u8, frame_step: u8) {
+        match address { 
+            0xFF16 => self.handle_nr21(value),
+            0xFF17 => self.handle_nr22(value),
+            0xFF18 => self.handle_nr23(value),
+            0xFF19 => self.handle_nr24(value, frame_step),
+            _ => (),
+        }
+        self.volume_envelope.write(address, value);
+    }
 
-    pub fn run(&mut self, memory: &mut Memory, frame_step: u8, start_time: u32, end_time: u32) {
+    pub fn run(&mut self, start_time: u32, end_time: u32) {
         if !self.enabled || self.period == 0 {
             if self.last_amp != 0 {
                 self.buffer.add_delta(start_time, -self.last_amp);
@@ -195,11 +214,6 @@ impl SquareWave {
                 self.delay = 0;
             }
         } else {
-            self.handle_nr21(*memory.get(0xFF16).unwrap());
-            self.handle_nr22(*memory.get(0xFF17).unwrap());
-            self.handle_nr23(*memory.get(0xFF18).unwrap());
-            self.handle_nr24(*memory.get(0xFF19).unwrap(), frame_step);
-
             let mut time = start_time + self.delay;
             let pattern = WAVE_PATTERN[self.duty as usize];
             let vol = self.volume_envelope.volume as i32;
@@ -228,47 +242,88 @@ pub struct APU {
     frame_step: u8,
     output_period: u32,
     pub(crate) channel2: SquareWave,
+    volume_left: u8,
+    volume_right: u8,
+    reg_vin_to_so: u8,
+    reg_ff25: u8
 }
 
 impl APU {
     pub fn new() -> Self {
-        //fixme: revoir ça
-        let output_period = ((SAMPLE_RATE as u64 * CLOCK_RATE as u64) / (SAMPLE_RATE as u64)) as u32;
+        let output_period = ((OUTPUT_SAMPLE_COUNT as u64 * CLOCK_RATE as u64) / (SAMPLE_RATE as u64)) as u32;
         
         APU {
-            enabled: true,
+            enabled: false,
             time: 0,
             prev_time: 0,
             next_time: CLOCK_PER_FRAME,
             frame_step: 0,
             output_period,
             channel2: SquareWave::new(),
+            volume_left: 7,
+            volume_right: 7,
+            reg_vin_to_so: 0x00,
+            reg_ff25: 0x00,
         }
     }
     
     pub fn step(&mut self, cycles: u32, memory: &mut Memory) {
+        self.check_values(memory);
         if !self.enabled {
             return;
         }
         
         self.time += cycles;
         if self.time >= self.output_period {
-            self.do_output(memory);
+            self.do_output();
         }
     }
     
-    fn do_output(&mut self, memory: &mut Memory) {
-        self.run(memory);
+    fn check_values(&mut self, memory: &mut Memory) {
+        if !self.enabled {
+            self.channel2.write(0xFF16, *memory.get(0xFF16).unwrap(), self.frame_step);
+        }
+        
+        self.run();
+        
+        for i in 0xFF16..=0xFF19 {
+            self.channel2.write(i, *memory.get(i as usize).unwrap(), self.frame_step)
+        }
+        
+        let volume = *memory.get(0xFF24).unwrap();
+        self.volume_left = volume & 0x7;
+        self.volume_right = (volume >> 4) & 0x7;
+        self.reg_vin_to_so = volume & 0x88;
+        
+        self.reg_ff25 = *memory.get(0xFF25).unwrap();
+        
+        let turn_on = *memory.get(0xFF26).unwrap() & 0x80 == 0x80;
+        if self.enabled && !turn_on {
+            for i in 0xFF10..=0xFF25 {
+                memory.write_memory(i, 0);
+            }
+            //self.check_values(memory);
+        }
+        if !self.enabled && turn_on {
+            self.frame_step = 0;
+        }
+        self.enabled = turn_on;
+    }
+    
+    fn do_output(&mut self) {
+        self.run();
         
         self.channel2.buffer.end_frame(self.time);
         self.next_time -= self.time;
         self.time = 0;
         self.prev_time = 0;
+        
+        self.clear_buffers();
     }
     
-    fn run(&mut self, memory: &mut Memory) {
+    fn run(&mut self) {
         while self.next_time <= self.time {
-            self.channel2.run(memory, self.frame_step, self.prev_time, self.next_time);
+            self.channel2.run(self.prev_time, self.next_time);
             
             if self.frame_step % 2 == 0 {
                 self.channel2.step_length();
@@ -283,9 +338,13 @@ impl APU {
         }
         
         if self.prev_time != self.time {
-            self.channel2.run(memory, self.frame_step, self.prev_time, self.time);
+            self.channel2.run(self.prev_time, self.time);
             
             self.prev_time = self.time;
         }
+    }
+    
+    fn clear_buffers(&mut self) {
+        self.channel2.buffer.clear();
     }
 }

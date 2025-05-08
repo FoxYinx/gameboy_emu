@@ -82,8 +82,7 @@ impl PPU {
                             self.mode = VBlank;
                             self.update_stat(memory);
                             self.window_line_counter = 0;
-
-                            //fixme: This code makes alleywey not run...
+                            
                             if let Some(lcdc) = memory.get(0xFF40) {
                                 if (*lcdc & 0x80) != 0 {
                                     if let Some(flag) = memory.get_mut(0xFF0F) {
@@ -138,7 +137,7 @@ impl PPU {
                 *stat_reg = (*stat_reg & 0b1111_1100) | 0b01;
                 *stat_reg &= !0x04;
             }
-            self.framebuffer.fill(0xFF);
+            //self.framebuffer.fill(0xFF);
             return;
         }
 

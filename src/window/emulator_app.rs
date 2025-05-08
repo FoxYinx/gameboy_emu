@@ -65,6 +65,7 @@ impl<'a> EmulatorApp<'a> {
                 if available > 0 {
                     let mut samples = vec![0i16; available as usize];
                     gameboy.apu.channel2.buffer.read_samples(&mut samples, false);
+                    println!("Samples: {:?}", samples.iter().take(10).collect::<Vec<_>>());
                     let samples_f32: Vec<f32> = samples.iter().map(|s| *s as f32 / 32768.0).collect();
                     if tx_audio.send(samples_f32).is_err() {
                         break
