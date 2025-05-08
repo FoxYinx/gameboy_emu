@@ -331,7 +331,7 @@ impl PPU {
                     if pixel_x < WIDTH as u8 {
                         let index = (self.line as usize * WIDTH as usize + pixel_x as usize) * 4;
 
-                        if (attributes & 0x80) == 0 || self.framebuffer[index] == 0xFF {
+                        if (attributes & 0x80) == 0 || self.framebuffer[index] == 0x9A {
                             self.framebuffer[index] = red;
                             self.framebuffer[index + 1] = green;
                             self.framebuffer[index + 2] = blue;
